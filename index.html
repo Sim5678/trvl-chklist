@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Travel Checklist - Multi Lists</title>
+  <title>Travel Checklist - Multi Lists + Drag&Drop</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -15,33 +15,27 @@
     const { useState, useEffect, createElement: h, useMemo } = React;
     const ICON = {Plus:'➕', Trash2:'🗑️', GripVertical:'⋮⋮', RotateCcw:'↺', Plane:'✈️', Edit2:'✏️', Check:'✓', X:'✕'};
 
-    // Initial data generated from CSV
-    const INITIAL_LISTS = [{"id": "viaggio-tango", "name": "Viaggio Tango", "groups": [{"id": "g-0", "name": "Abbigliamento", "items": [{"id": "Abbigliamento-907303730", "label": "2 paia scarpe da ballo", "order": 120}, {"id": "Abbigliamento-980418078", "label": "mutande", "order": 10}, {"id": "Abbigliamento-816173053", "label": "calzini (8 paia)", "order": 20}, {"id": "Abbigliamento-311708902", "label": "cinture (2)", "order": 30}, {"id": "Abbigliamento-229589536", "label": "3 magliette", "order": 40}, {"id": "Abbigliamento-346391068", "label": "asciugamani grande e piccolo", "order": 100}, {"id": "Abbigliamento-224563620", "label": "camicie (2)", "order": 130}, {"id": "Abbigliamento-918595033", "label": "pantaloni (2)", "order": 140}, {"id": "Abbigliamento-963214121", "label": "scarpe comode (1 paio)", "order": 150}, {"id": "Abbigliamento-197544833", "label": "felpa", "order": 160}, {"id": "Abbigliamento-820645831", "label": "calze corte", "order": 170}, {"id": "Abbigliamento-667274828", "label": "bermuda (2)", "order": 180}, {"id": "Abbigliamento-960732392", "label": "maglioncino leggero", "order": 270}, {"id": "Abbigliamento-287557981", "label": "sciarpa leggera", "order": 280}, {"id": "Abbigliamento-290729986", "label": "cappellino/berretto", "order": 290}, {"id": "Abbigliamento-848494433", "label": "camicia elegante", "order": 300}, {"id": "Abbigliamento-573755317", "label": "cintura elegante", "order": 310}]}, {"id": "g-1", "name": "Salute / Farmaci", "items": [{"id": "Salute / Farmaci-414402594", "label": "acqua di sirmione/rinazina", "order": 750}, {"id": "Salute / Farmaci-63664431", "label": "arnica", "order": 570}, {"id": "Salute / Farmaci-924832780", "label": "Autan", "order": 870}]}, {"id": "g-2", "name": "Elettronica", "items": [{"id": "Elettronica-506623285", "label": "adattatore spine", "order": 240}, {"id": "Elettronica-393384552", "label": "caricabatteria", "order": 190}, {"id": "Elettronica-204130723", "label": "power bank", "order": 200}]}, {"id": "g-3", "name": "Igiene / Toeletta", "items": [{"id": "Igiene / Toeletta-298834201", "label": "beauty case", "order": 180}, {"id": "Igiene / Toeletta-511199838", "label": "bagnoschiuma", "order": 330}, {"id": "Igiene / Toeletta-796900448", "label": "deodorante", "order": 340}, {"id": "Igiene / Toeletta-690749864", "label": "spazzolino", "order": 350}, {"id": "Igiene / Toeletta-941458376", "label": "dentifricio", "order": 360}, {"id": "Igiene / Toeletta-687929245", "label": "shampoo", "order": 370}, {"id": "Igiene / Toeletta-87413483", "label": "rasoio", "order": 380}, {"id": "Igiene / Toeletta-334982940", "label": "crema viso", "order": 390}, {"id": "Igiene / Toeletta-949639839", "label": "balsamo", "order": 400}, {"id": "Igiene / Toeletta-936602188", "label": "forbicine", "order": 410}, {"id": "Igiene / Toeletta-383123192", "label": "tagliaunghie", "order": 420}, {"id": "Igiene / Toeletta-614821860", "label": "cotton fioc", "order": 430}]}, {"id": "g-4", "name": "Accessori / Vari", "items": [{"id": "Accessori / Vari-443601885", "label": "attaccapanni", "order": 390}, {"id": "Accessori / Vari-392579465", "label": "borsa della spesa", "order": 740}]}, {"id": "g-5", "name": "Cibo / Snack", "items": [{"id": "Cibo / Snack-909943913", "label": "barrette", "order": 610}]}, {"id": "g-6", "name": "Altro", "items": []}, {"id": "g-7", "name": "Spiaggia / Outdoor", "items": []}] }
-
+    const INITIAL_LISTS = [{"id": "viaggio-tango", "name": "Viaggio Tango", "groups": [{"id": "g-0", "name": "Abbigliamento", "items": [{"id": "Abbigliamento-184416572", "label": "mutande", "order": 10}, {"id": "Abbigliamento-781371991", "label": "canottiere", "order": 30}, {"id": "Abbigliamento-973889843", "label": "calzini corti", "order": 40}, {"id": "Abbigliamento-562385949", "label": "calze lunghe", "order": 50}, {"id": "Abbigliamento-352398406", "label": "pantaloni ballo", "order": 60}, {"id": "Abbigliamento-440589367", "label": "pantaloni pescatore", "order": 70}, {"id": "Abbigliamento-609179151", "label": "2 paia scarpe da ballo", "order": 120}, {"id": "Abbigliamento-147711535", "label": "camicie", "order": 190}, {"id": "Abbigliamento-753761502", "label": "cappellino", "order": 340}, {"id": "Abbigliamento-975543409", "label": "pantaloncini corti", "order": 590}, {"id": "Abbigliamento-37053586", "label": "Giacca a vento", "order": 790}, {"id": "Abbigliamento-613751498", "label": "Spray scarpe", "order": 830}, {"id": "Abbigliamento-178552403", "label": "Pantalon crème K", "order": 930}]}, {"id": "g-1", "name": "Salute / Farmaci", "items": [{"id": "Salute / Farmaci-869374945", "label": "condoms", "order": 300}, {"id": "Salute / Farmaci-661876608", "label": "cerotti nasali", "order": 510}, {"id": "Salute / Farmaci-647444918", "label": "arnica", "order": 570}, {"id": "Salute / Farmaci-195770518", "label": "acqua di sirmione/rinazina", "order": 750}, {"id": "Salute / Farmaci-181649960", "label": "Bustine potassio", "order": 780}, {"id": "Salute / Farmaci-195886620", "label": "Autan", "order": 870}]}, {"id": "g-2", "name": "Elettronica", "items": [{"id": "Elettronica-660851524", "label": "powerBank", "order": 220}, {"id": "Elettronica-879449558", "label": "presa schuko", "order": 230}, {"id": "Elettronica-575696180", "label": "adattatore spine", "order": 240}, {"id": "Elettronica-485225599", "label": "carica orologio", "order": 290}, {"id": "Elettronica-536432036", "label": "cuffiette", "order": 370}, {"id": "Elettronica-786867853", "label": "cavi", "order": 550}, {"id": "Elettronica-332989231", "label": "portacavi", "order": 560}, {"id": "Elettronica-959791362", "label": "cellulare lavoro", "order": 650}, {"id": "Elettronica-642584172", "label": "Cuffiette lavoro", "order": 655}, {"id": "Elettronica-402474929", "label": "Cassa acustica", "order": 800}, {"id": "Elettronica-769622614", "label": "Cellulare riserva", "order": 840}, {"id": "Elettronica-550893272", "label": "Mac+aliment. + adattatore + mouse", "order": 850}, {"id": "Elettronica-545136017", "label": "Gommini cuffiette", "order": 890}]}, {"id": "g-3", "name": "Igiene / Toeletta", "items": [{"id": "Igiene / Toeletta-829665122", "label": "asciugamani grande e piccolo", "order": 100}, {"id": "Igiene / Toeletta-868910395", "label": "beauty case", "order": 180}, {"id": "Igiene / Toeletta-189918004", "label": "cera capelli", "order": 250}, {"id": "Igiene / Toeletta-155050059", "label": "flosser", "order": 470}, {"id": "Igiene / Toeletta-791111603", "label": "cotton fioc", "order": 500}, {"id": "Igiene / Toeletta-991816719", "label": "crema mani", "order": 670}, {"id": "Igiene / Toeletta-44991656", "label": "Crema solare", "order": 680}, {"id": "Igiene / Toeletta-69423454", "label": "spazzolino elettrico", "order": 710}, {"id": "Igiene / Toeletta-626765723", "label": "Crema dopo sole", "order": 810}, {"id": "Igiene / Toeletta-319169534", "label": "Burro cacao", "order": 880}, {"id": "Igiene / Toeletta-560702927", "label": "Clorexidina", "order": 910}]}, {"id": "g-4", "name": "Accessori / Vari", "items": [{"id": "Accessori / Vari-385874606", "label": "borsello", "order": 200}, {"id": "Accessori / Vari-792001534", "label": "ombrello", "order": 280}, {"id": "Accessori / Vari-287514841", "label": "ciabatte camera", "order": 320}, {"id": "Accessori / Vari-626219734", "label": "ciabatte piscina", "order": 330}, {"id": "Accessori / Vari-415053336", "label": "attaccapanni", "order": 390}, {"id": "Accessori / Vari-92326638", "label": "occhiali riserva", "order": 400}, {"id": "Accessori / Vari-642066114", "label": "fascia valigia", "order": 440}, {"id": "Accessori / Vari-883089318", "label": "pezzuola occhiali", "order": 480}, {"id": "Accessori / Vari-366029992", "label": "cuscino aereo", "order": 580}, {"id": "Accessori / Vari-215900494", "label": "occhiali da sole", "order": 600}, {"id": "Accessori / Vari-568598800", "label": "custodia occhiali", "order": 690}, {"id": "Accessori / Vari-703456796", "label": "cavatappi", "order": 700}, {"id": "Accessori / Vari-152406308", "label": "borsa della spesa", "order": 740}]}, {"id": "g-5", "name": "Cibo / Snack", "items": [{"id": "Cibo / Snack-862619128", "label": "caramelle", "order": 160}, {"id": "Cibo / Snack-975917305", "label": "bottiglia termica", "order": 170}, {"id": "Cibo / Snack-788931752", "label": "barrette", "order": 610}, {"id": "Cibo / Snack-878948922", "label": "caffè", "order": 630}, {"id": "Cibo / Snack-99417639", "label": "Cibo", "order": 920}]}, {"id": "g-6", "name": "Altro", "items": [{"id": "Altro-581253934", "label": "t-shirt", "order": 20}, {"id": "Altro-984120068", "label": "fazzoletti carta", "order": 80}, {"id": "Altro-617970740", "label": "fazzoletti stoffa", "order": 90}, {"id": "Altro-885557476", "label": "mutantine piedi", "order": 130}, {"id": "Altro-60888749", "label": "zainetto", "order": 140}, {"id": "Altro-841641869", "label": "kway o poncho", "order": 150}, {"id": "Altro-607173258", "label": "ipad", "order": 210}, {"id": "Altro-138439", "label": "Gel capelli", "order": 260}, {"id": "Altro-111504074", "label": "gel igienizzante", "order": 270}, {"id": "Altro-201197176", "label": "costume bagno", "order": 310}, {"id": "Altro-162972072", "label": "mascherine", "order": 350}, {"id": "Altro-102689930", "label": "maglione", "order": 380}, {"id": "Altro-255432716", "label": "penna", "order": 410}, {"id": "Altro-185282829", "label": "incartamento", "order": 420}, {"id": "Altro-536830802", "label": "nastro adesivo", "order": 430}, {"id": "Altro-994969501", "label": "spago stendino", "order": 450}, {"id": "Altro-445077236", "label": "TobraDel", "order": 460}, {"id": "Altro-850024879", "label": "cinture", "order": 490}, {"id": "Altro-325589169", "label": "tappi orecchie", "order": 520}, {"id": "Altro-158784142", "label": "golfino", "order": 530}, {"id": "Altro-379943107", "label": "pastiglie", "order": 540}, {"id": "Altro-137762893", "label": "piastra bialetti", "order": 620}, {"id": "Altro-36377389", "label": "moka", "order": 640}, {"id": "Altro-832280497", "label": "voltadvance", "order": 660}, {"id": "Altro-499454643", "label": "regali", "order": 720}, {"id": "Altro-620647677", "label": "tensiopram", "order": 730}, {"id": "Altro-634229314", "label": "libri", "order": 760}, {"id": "Altro-400449012", "label": "notes", "order": 770}, {"id": "Altro-286538474", "label": "Stick protezione50", "order": 820}, {"id": "Altro-652305669", "label": "Phon", "order": 860}, {"id": "Altro-851877455", "label": "Tazza eco", "order": 900}, {"id": "Altro-354197230", "label": "Kk", "order": 940}, {"id": "Altro-85792885", "label": "Salviette umide", "order": 950}]}, {"id": "g-7", "name": "Documenti", "items": [{"id": "Documenti-218049625", "label": "copie carta identità", "order": 360}]}]}];
     const DEFAULT_LIST = {
       id: "base",
       name: "Base",
       groups: [
         { id: "docs", name: "Documenti", items: [] },
         { id: "tech", name: "Tecnologia", items: [] },
-        { id: "igiene", name: "Igiene / Toeletta", items: [] },
+        { id: "igiene", name: "Igiene / Toeletta", items: [] }
       ]
     };
 
-    function loadState() {
-      try { return JSON.parse(localStorage.getItem('travel-multilist-state')) || null; } catch { return null; }
-    }
-    function saveState(state) {
-      try { localStorage.setItem('travel-multilist-state', JSON.stringify(state)); } catch { }
-    }
-    function slugify(t) { return t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+    function loadState() { try { return JSON.parse(localStorage.getItem('travel-multilist-state')) || null; } catch { return null; } }
+    function saveState(state) { try { localStorage.setItem('travel-multilist-state', JSON.stringify(state)); } catch { } }
+    function slugify(t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
 
     function App() {
       const saved = loadState();
-      const [lists, setLists] = useState(saved?.lists || INITIAL_LISTS.concat([DEFAULT_LIST]));
-      const [activeListId, setActiveListId] = useState(saved?.activeListId || lists[0]?.id || 'base');
+      const [lists, setLists] = useState(saved && saved.lists ? saved.lists : INITIAL_LISTS.concat([DEFAULT_LIST]));
+      const [activeListId, setActiveListId] = useState(saved && saved.activeListId ? saved.activeListId : (INITIAL_LISTS[0] ? INITIAL_LISTS[0].id : 'base'));
       const [newListName, setNewListName] = useState('');
-      const [sortMode, setSortMode] = useState(saved?.sortMode || 'csv'); // csv | alpha | unchecked
+      const [sortMode, setSortMode] = useState(saved && saved.sortMode ? saved.sortMode : 'csv'); // csv | alpha
 
       useEffect(() => saveState({ lists, activeListId, sortMode }), [lists, activeListId, sortMode]);
 
@@ -87,7 +81,51 @@
         } : l));
       }
 
-      // Sorting
+      // ---------- Drag & Drop (within same category) ----------
+      const [dragData, setDragData] = useState(null); // { groupId, itemId }
+
+      function onDragStart(e, groupId, itemId) {
+        setDragData({ groupId, itemId });
+        try { e.dataTransfer.setData('text/plain', JSON.stringify({ groupId, itemId })); } catch (err) {}
+        e.dataTransfer.effectAllowed = 'move';
+      }
+
+      function onDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      }
+
+      function renormalizeOrders(items) { return items.map((it, idx) => ({ ...it, order: (idx+1)*10 })); }
+
+      function moveItemSameGroup(groupId, draggedId, targetId) {
+        setLists(prev => prev.map(list => {
+          if (list.id !== activeList.id) return list;
+          const newGroups = list.groups.map(g => {
+            if (g.id !== groupId) return g;
+            const items = g.items.slice();
+            const fromIdx = items.findIndex(i => i.id === draggedId);
+            const toIdx = items.findIndex(i => i.id === targetId);
+            if (fromIdx === -1 || toIdx === -1) return g;
+            const [moved] = items.splice(fromIdx, 1);
+            items.splice(toIdx, 0, moved);
+            return { ...g, items: renormalizeOrders(items) };
+          });
+          return { ...list, groups: newGroups };
+        }));
+      }
+
+      function onDrop(e, groupId, targetId) {
+        e.preventDefault();
+        let payload = dragData;
+        if (!payload) {
+          try { payload = JSON.parse(e.dataTransfer.getData('text/plain') || 'null'); } catch { payload = null; }
+        }
+        if (!payload) return;
+        if (payload.groupId !== groupId) return;
+        moveItemSameGroup(groupId, payload.itemId, targetId);
+        setDragData(null);
+      }
+
       function sortItems(items) {
         if (sortMode === 'alpha') return items.slice().sort((a,b) => a.label.localeCompare(b.label));
         return items.slice().sort((a,b) => (a.order ?? 999999) - (b.order ?? 999999) || a.label.localeCompare(b.label));
@@ -104,9 +142,19 @@
             ),
             h('button', { onClick: () => removeGroup(group.id), className: 'text-sm opacity-70 hover:opacity-100' }, ICON.Trash2)
           ),
-          ...sorted.map(it => h('div', { key: it.id, className: 'flex items-center justify-between py-1' },
-            h('span', null, it.label),
-            h('div', { className: 'flex items-center gap-2 text-sm opacity-80' },
+          ...sorted.map(it => h('div', {
+              key: it.id,
+              className: 'flex items-center justify-between py-2 rounded-lg px-2 ' + (sortMode === 'alpha' ? 'opacity-80' : 'bg-slate-900/30'),
+              draggable: sortMode !== 'alpha',
+              onDragStart: (e) => onDragStart(e, group.id, it.id),
+              onDragOver: onDragOver,
+              onDrop: (e) => onDrop(e, group.id, it.id)
+            },
+            h('div', { className: 'flex items-center gap-3' },
+              h('span', { className: 'cursor-grab select-none' }, ICON.GripVertical),
+              h('span', null, it.label)
+            ),
+            h('div', { className: 'flex items-center gap-3 text-sm opacity-80' },
               h('span', null, (it.order ?? '')),
               h('button', { onClick: () => removeItem(group.id, it.id), className: 'hover:opacity-100' }, ICON.Trash2)
             )
@@ -114,7 +162,8 @@
           h('div', { className: 'mt-3 flex items-center gap-2' },
             h('input', { value: newItem, onChange: e => setNewItem(e.target.value), placeholder: 'Aggiungi elemento…', className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700 outline-none focus:ring-2 ring-emerald-500' }),
             h('button', { onClick: () => { addItem(group.id, newItem); setNewItem(''); }, className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500' }, ICON.Plus)
-          )
+          ),
+          sortMode === 'alpha' && h('div', { className: 'text-xs opacity-70 mt-2' }, 'Drag & drop disabilitato in ordinamento alfabetico')
         );
       }
 
@@ -123,10 +172,10 @@
         return h('div', { className: 'max-w-4xl mx-auto p-4 sm:p-6 md:p-8' },
           h('header', { className: 'text-center mb-6' },
             h('div', { className: 'mx-auto w-min text-5xl mb-3 opacity-60' }, ICON.Plane),
-            h('h1', { className: 'text-2xl sm:text-3xl font-semibold' }, activeList?.name || 'Lista')
+            h('h1', { className: 'text-2xl sm:text-3xl font-semibold' }, activeList ? activeList.name : 'Lista')
           ),
           h('div', { className: 'grid gap-2 sm:grid-cols-3 mb-4' },
-            h('select', { value: activeListId, onChange: e => setActiveListId(e.target.value), className: 'rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' }, 
+            h('select', { value: activeListId, onChange: e => setActiveListId(e.target.value), className: 'rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' },
               lists.map(l => h('option', { key: l.id, value: l.id }, l.name))
             ),
             h('div', { className: 'flex gap-2' },
@@ -143,7 +192,7 @@
             h('button', { onClick: () => { addGroup(newGroup); setNewGroup(''); }, className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500' }, ICON.Plus)
           ),
           h('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4' },
-            (activeList?.groups || []).map(g => h(GroupCard, { key: g.id, group: g }))
+            (activeList && activeList.groups ? activeList.groups : []).map(g => h(GroupCard, { key: g.id, group: g }))
           )
         );
       }
