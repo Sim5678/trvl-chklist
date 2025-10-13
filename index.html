@@ -288,20 +288,12 @@
             };
 
             const deleteItem = (id) => {
-                const tg = window.Telegram?.WebApp;
-                
-                if (tg) {
-                    tg.showConfirm('Eliminare questo elemento?', (confirmed) => {
-                        if (confirmed) {
-                            setItems(items.filter(item => item.id !== id));
-                            if (tg.HapticFeedback) {
-                                tg.HapticFeedback.notificationOccurred('warning');
-                            }
-                        }
-                    });
-                } else {
-                    if (window.confirm('Eliminare questo elemento?')) {
-                        setItems(items.filter(item => item.id !== id));
+                if (window.confirm('Eliminare questo elemento?')) {
+                    setItems(items.filter(item => item.id !== id));
+                    
+                    const tg = window.Telegram?.WebApp;
+                    if (tg?.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('warning');
                     }
                 }
             };
