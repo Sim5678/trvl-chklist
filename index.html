@@ -1,275 +1,158 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Checklist</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Travel Checklist - Multi Lists</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div id="root"></div>
-    
-    <script>
-        const { useState, useEffect, createElement: h } = React;
+<body class="bg-slate-900 text-slate-100">
+  <div id="root"></div>
+  <script>
+    const { useState, useEffect, createElement: h, useMemo } = React;
+    const ICON = {Plus:'➕', Trash2:'🗑️', GripVertical:'⋮⋮', RotateCcw:'↺', Plane:'✈️', Edit2:'✏️', Check:'✓', X:'✕'};
 
-        // Telegram WebApp integration helper functions
-        function setTelegramColors() {
-            if (!window.Telegram || !window.Telegram.WebApp) return;
-            const WebApp = window.Telegram.WebApp;
+    // Initial data generated from CSV
+    const INITIAL_LISTS = [{"id": "viaggio-tango", "name": "Viaggio Tango", "groups": [{"id": "g-0", "name": "Abbigliamento", "items": [{"id": "Abbigliamento-907303730", "label": "2 paia scarpe da ballo", "order": 120}, {"id": "Abbigliamento-980418078", "label": "mutande", "order": 10}, {"id": "Abbigliamento-816173053", "label": "calzini (8 paia)", "order": 20}, {"id": "Abbigliamento-311708902", "label": "cinture (2)", "order": 30}, {"id": "Abbigliamento-229589536", "label": "3 magliette", "order": 40}, {"id": "Abbigliamento-346391068", "label": "asciugamani grande e piccolo", "order": 100}, {"id": "Abbigliamento-224563620", "label": "camicie (2)", "order": 130}, {"id": "Abbigliamento-918595033", "label": "pantaloni (2)", "order": 140}, {"id": "Abbigliamento-963214121", "label": "scarpe comode (1 paio)", "order": 150}, {"id": "Abbigliamento-197544833", "label": "felpa", "order": 160}, {"id": "Abbigliamento-820645831", "label": "calze corte", "order": 170}, {"id": "Abbigliamento-667274828", "label": "bermuda (2)", "order": 180}, {"id": "Abbigliamento-960732392", "label": "maglioncino leggero", "order": 270}, {"id": "Abbigliamento-287557981", "label": "sciarpa leggera", "order": 280}, {"id": "Abbigliamento-290729986", "label": "cappellino/berretto", "order": 290}, {"id": "Abbigliamento-848494433", "label": "camicia elegante", "order": 300}, {"id": "Abbigliamento-573755317", "label": "cintura elegante", "order": 310}]}, {"id": "g-1", "name": "Salute / Farmaci", "items": [{"id": "Salute / Farmaci-414402594", "label": "acqua di sirmione/rinazina", "order": 750}, {"id": "Salute / Farmaci-63664431", "label": "arnica", "order": 570}, {"id": "Salute / Farmaci-924832780", "label": "Autan", "order": 870}]}, {"id": "g-2", "name": "Elettronica", "items": [{"id": "Elettronica-506623285", "label": "adattatore spine", "order": 240}, {"id": "Elettronica-393384552", "label": "caricabatteria", "order": 190}, {"id": "Elettronica-204130723", "label": "power bank", "order": 200}]}, {"id": "g-3", "name": "Igiene / Toeletta", "items": [{"id": "Igiene / Toeletta-298834201", "label": "beauty case", "order": 180}, {"id": "Igiene / Toeletta-511199838", "label": "bagnoschiuma", "order": 330}, {"id": "Igiene / Toeletta-796900448", "label": "deodorante", "order": 340}, {"id": "Igiene / Toeletta-690749864", "label": "spazzolino", "order": 350}, {"id": "Igiene / Toeletta-941458376", "label": "dentifricio", "order": 360}, {"id": "Igiene / Toeletta-687929245", "label": "shampoo", "order": 370}, {"id": "Igiene / Toeletta-87413483", "label": "rasoio", "order": 380}, {"id": "Igiene / Toeletta-334982940", "label": "crema viso", "order": 390}, {"id": "Igiene / Toeletta-949639839", "label": "balsamo", "order": 400}, {"id": "Igiene / Toeletta-936602188", "label": "forbicine", "order": 410}, {"id": "Igiene / Toeletta-383123192", "label": "tagliaunghie", "order": 420}, {"id": "Igiene / Toeletta-614821860", "label": "cotton fioc", "order": 430}]}, {"id": "g-4", "name": "Accessori / Vari", "items": [{"id": "Accessori / Vari-443601885", "label": "attaccapanni", "order": 390}, {"id": "Accessori / Vari-392579465", "label": "borsa della spesa", "order": 740}]}, {"id": "g-5", "name": "Cibo / Snack", "items": [{"id": "Cibo / Snack-909943913", "label": "barrette", "order": 610}]}, {"id": "g-6", "name": "Altro", "items": []}, {"id": "g-7", "name": "Spiaggia / Outdoor", "items": []}] };
 
-            const tgTheme = WebApp.themeParams || {};
-            const bgColor = tgTheme.bg_color || "#0f172a";
-            const textColor = tgTheme.text_color || "#e5e7eb";
-            const hintColor = tgTheme.hint_color || "#94a3b8";
-            const btnColor = tgTheme.button_color || "#22c55e";
-            const btnTextColor = tgTheme.button_text_color || "#ffffff";
+    const DEFAULT_LIST = {
+      id: "base",
+      name: "Base",
+      groups: [
+        { id: "docs", name: "Documenti", items: [] },
+        { id: "tech", name: "Tecnologia", items: [] },
+        { id: "igiene", name: "Igiene / Toeletta", items: [] },
+      ]
+    };
 
-            WebApp.setHeaderColor(bgColor);
-            WebApp.setBottomBarColor(bgColor);
-            WebApp.setBackgroundColor(bgColor);
-            WebApp.setHeaderColor(bgColor);
+    function loadState() {
+      try { return JSON.parse(localStorage.getItem('travel-multilist-state')) || null; } catch { return null; }
+    }
+    function saveState(state) {
+      try { localStorage.setItem('travel-multilist-state', JSON.stringify(state)); } catch { }
+    }
+    function slugify(t) { return t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
 
-            document.documentElement.style.setProperty("--bg-color", bgColor);
-            document.documentElement.style.setProperty("--text-color", textColor);
-            document.documentElement.style.setProperty("--hint-color", hintColor);
-            document.documentElement.style.setProperty("--btn-color", btnColor);
-            document.documentElement.style.setProperty("--btn-text-color", btnTextColor);
+    function App() {
+      const saved = loadState();
+      const [lists, setLists] = useState(saved?.lists || INITIAL_LISTS.concat([DEFAULT_LIST]));
+      const [activeListId, setActiveListId] = useState(saved?.activeListId || lists[0]?.id || 'base');
+      const [newListName, setNewListName] = useState('');
+      const [sortMode, setSortMode] = useState(saved?.sortMode || 'csv'); // csv | alpha | unchecked
 
-            document.body.style.backgroundColor = bgColor;
-            document.body.style.color = textColor;
-        }
+      useEffect(() => saveState({ lists, activeListId, sortMode }), [lists, activeListId, sortMode]);
 
-        function readyTelegram() {
-            if (!window.Telegram || !window.Telegram.WebApp) return;
-            const WebApp = window.Telegram.WebApp;
-            try { WebApp.ready(); } catch (_) {}
-            try { WebApp.expand(); } catch (_) {}
-        }
+      const activeList = useMemo(() => lists.find(l => l.id === activeListId) || lists[0], [lists, activeListId]);
 
-        // Sostituisce lucide con una semplice mappa di “icone” (emoji) per evitare l’errore React #130
-        const ICON = {Plus:'➕', Trash2:'🗑️', GripVertical:'⋮⋮', RotateCcw:'↺', Plane:'✈️', Edit2:'✏️', Check:'✓', X:'✕'};
+      function addList() {
+        const name = newListName.trim();
+        if (!name) return;
+        const id = slugify(name) + '-' + Date.now();
+        const newL = { id, name, groups: [] };
+        setLists(prev => prev.concat([newL]));
+        setActiveListId(id);
+        setNewListName('');
+      }
 
-        // Dati iniziali
-        const DEFAULT_GROUPS = [
-            {
-                id: "docs",
-                name: "Documenti",
-                items: [
-                    { id: "passport", label: "Passaporto / Carta d'identità" },
-                    { id: "tickets", label: "Biglietti / Boarding pass" },
-                    { id: "insurance", label: "Assicurazione viaggio" }
-                ]
-            },
-            {
-                id: "tech",
-                name: "Tecnologia",
-                items: [
-                    { id: "phone", label: "Telefono" },
-                    { id: "charger", label: "Caricabatterie" },
-                    { id: "powerbank", label: "Power bank" }
-                ]
-            },
-            {
-                id: "toiletries",
-                name: "Toeletta",
-                items: [
-                    { id: "toothbrush", label: "Spazzolino" },
-                    { id: "toothpaste", label: "Dentifricio" },
-                    { id: "deodorant", label: "Deodorante" }
-                ]
-            }
-        ];
+      function addGroup(name) {
+        const n = (name || '').trim();
+        if (!n) return;
+        const id = slugify(n) + '-' + Date.now();
+        const newGroup = { id, name: n, items: [] };
+        setLists(prev => prev.map(l => l.id === activeList.id ? { ...l, groups: l.groups.concat([newGroup]) } : l));
+      }
 
-        function loadState() {
-            try {
-                const raw = localStorage.getItem("travel-checklist-state");
-                return raw ? JSON.parse(raw) : null;
-            } catch {
-                return null;
-            }
-        }
+      function removeGroup(groupId) {
+        if (!confirm('Eliminare questa categoria?')) return;
+        setLists(prev => prev.map(l => l.id === activeList.id ? { ...l, groups: l.groups.filter(g => g.id !== groupId) } : l));
+      }
 
-        function saveState(state) {
-            try {
-                localStorage.setItem("travel-checklist-state", JSON.stringify(state));
-            } catch {}
-        }
+      function addItem(groupId, label) {
+        const text = (label || '').trim();
+        if (!text) return;
+        const it = { id: groupId + '-' + Date.now(), label: text, order: 999999 };
+        setLists(prev => prev.map(l => l.id === activeList.id ? {
+          ...l,
+          groups: l.groups.map(g => g.id === groupId ? { ...g, items: g.items.concat([it]) } : g)
+        } : l));
+      }
 
-        function TravelChecklistApp() {
-            const [groups, setGroups] = useState(() => {
-                const saved = loadState();
-                return saved?.groups || DEFAULT_GROUPS;
-            });
-            const [checks, setChecks] = useState(() => {
-                const saved = loadState();
-                return saved?.checks || {};
-            });
-            const [title, setTitle] = useState(() => {
-                const saved = loadState();
-                return saved?.title || "Checklist Viaggio";
-            });
-            const [newItemLabel, setNewItemLabel] = useState("");
-            const [selectedGroup, setSelectedGroup] = useState(groups[0]?.id || "docs");
+      function removeItem(groupId, itemId) {
+        setLists(prev => prev.map(l => l.id === activeList.id ? {
+          ...l,
+          groups: l.groups.map(g => g.id === groupId ? { ...g, items: g.items.filter(i => i.id !== itemId) } : g)
+        } : l));
+      }
 
-            useEffect(() => {
-                setTelegramColors();
-                readyTelegram();
-            }, []);
+      // Sorting
+      function sortItems(items) {
+        if (sortMode === 'alpha') return items.slice().sort((a,b) => a.label.localeCompare(b.label));
+        return items.slice().sort((a,b) => (a.order ?? 999999) - (b.order ?? 999999) || a.label.localeCompare(b.label));
+      }
 
-            useEffect(() => {
-                saveState({ groups, checks, title });
-            }, [groups, checks, title]);
+      function GroupCard({ group }) {
+        const [newItem, setNewItem] = React.useState('');
+        const sorted = sortItems(group.items);
+        return h('div', { className: 'rounded-2xl p-4 shadow-lg bg-slate-800/60 border border-slate-700' },
+          h('div', { className: 'flex items-center justify-between mb-2' },
+            h('div', { className: 'flex items-center gap-2' },
+              h('span', { className: 'text-2xl' }, ICON.GripVertical),
+              h('h3', { className: 'text-lg font-semibold' }, group.name)
+            ),
+            h('button', { onClick: () => removeGroup(group.id), className: 'text-sm opacity-70 hover:opacity-100' }, ICON.Trash2)
+          ),
+          ...sorted.map(it => h('div', { key: it.id, className: 'flex items-center justify-between py-1' },
+            h('span', null, it.label),
+            h('div', { className: 'flex items-center gap-2 text-sm opacity-80' },
+              h('span', null, (it.order ?? '')),
+              h('button', { onClick: () => removeItem(group.id, it.id), className: 'hover:opacity-100' }, ICON.Trash2)
+            )
+          )),
+          h('div', { className: 'mt-3 flex items-center gap-2' },
+            h('input', { value: newItem, onChange: e => setNewItem(e.target.value), placeholder: 'Aggiungi elemento…', className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700 outline-none focus:ring-2 ring-emerald-500' }),
+            h('button', { onClick: () => { addItem(group.id, newItem); setNewItem(''); }, className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500' }, ICON.Plus)
+          )
+        );
+      }
 
-            function toggleCheck(id) {
-                setChecks(prev => ({ ...prev, [id]: !prev[id] }));
-            }
+      function UI() {
+        const [newGroup, setNewGroup] = useState('');
+        return h('div', { className: 'max-w-4xl mx-auto p-4 sm:p-6 md:p-8' },
+          h('header', { className: 'text-center mb-6' },
+            h('div', { className: 'mx-auto w-min text-5xl mb-3 opacity-60' }, ICON.Plane),
+            h('h1', { className: 'text-2xl sm:text-3xl font-semibold' }, activeList?.name || 'Lista')
+          ),
+          h('div', { className: 'grid gap-2 sm:grid-cols-3 mb-4' },
+            h('select', { value: activeListId, onChange: e => setActiveListId(e.target.value), className: 'rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' }, 
+              lists.map(l => h('option', { key: l.id, value: l.id }, l.name))
+            ),
+            h('div', { className: 'flex gap-2' },
+              h('input', { value: newListName, onChange: e => setNewListName(e.target.value), placeholder: 'Nuova lista…', className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' }),
+              h('button', { onClick: addList, className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500' }, ICON.Plus)
+            ),
+            h('select', { value: sortMode, onChange: e => setSortMode(e.target.value), className: 'rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' },
+              h('option', {value:'csv'}, 'Ordine CSV'),
+              h('option', {value:'alpha'}, 'Alfabetico')
+            )
+          ),
+          h('div', { className: 'flex items-center gap-2 mb-3' },
+            h('input', { value: newGroup, onChange: e => setNewGroup(e.target.value), placeholder: 'Nuova categoria…', className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' }),
+            h('button', { onClick: () => { addGroup(newGroup); setNewGroup(''); }, className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500' }, ICON.Plus)
+          ),
+          h('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4' },
+            (activeList?.groups || []).map(g => h(GroupCard, { key: g.id, group: g }))
+          )
+        );
+      }
 
-            function addItem() {
-                const trimmed = newItemLabel.trim();
-                if (!trimmed) return;
-                setGroups(prev => prev.map(g => g.id === selectedGroup ? {
-                    ...g,
-                    items: [...g.items, { id: `${g.id}-${Date.now()}`, label: trimmed }]
-                } : g));
-                setNewItemLabel("");
-            }
+      return h(UI);
+    }
 
-            function removeItem(groupId, itemId) {
-                setGroups(prev => prev.map(g => g.id === groupId ? {
-                    ...g,
-                    items: g.items.filter(i => i.id !== itemId)
-                } : g));
-                setChecks(prev => {
-                    const cp = { ...prev };
-                    delete cp[itemId];
-                    return cp;
-                });
-            }
-
-            function handleResetChecks() {
-                setChecks({});
-            }
-
-            function handleResetAll() {
-                if (!confirm("Sicuro di voler ripristinare i dati iniziali?")) return;
-                setGroups(DEFAULT_GROUPS);
-                setChecks({});
-                setTitle("Checklist Viaggio");
-            }
-
-            function handleTitleChange(e) {
-                setTitle(e.target.value);
-            }
-
-            function GroupCard({ group }) {
-                const done = group.items.filter(i => checks[i.id]).length;
-                const total = group.items.length;
-                const allDone = total > 0 && done === total;
-
-                return h(
-                    'div',
-                    { className: 'rounded-2xl p-4 shadow-lg bg-slate-800/60 border border-slate-700' },
-                    h('div', { className: 'flex items-center justify-between mb-2' },
-                        h('div', { className: 'flex items-center gap-2' },
-                            h('span', { className: 'text-2xl' }, ICON.GripVertical),
-                            h('h3', { className: 'text-lg font-semibold' }, group.name)
-                        ),
-                        h('span', { className: 'text-sm opacity-70' }, `${done}/${total}`)
-                    ),
-
-                    // Items
-                    ...group.items.map(item => h('label', {
-                        key: item.id,
-                        className: 'flex items-center justify-between gap-3 py-2'
-                    },
-                        h('div', { className: 'flex items-center gap-3' },
-                            h('input', {
-                                type: 'checkbox',
-                                checked: !!checks[item.id],
-                                onChange: () => toggleCheck(item.id),
-                                className: 'size-5 rounded border-slate-600 accent-emerald-500'
-                            }),
-                            h('span', { className: checks[item.id] ? 'line-through opacity-60' : '' }, item.label)
-                        ),
-                        h('button', {
-                            onClick: () => removeItem(group.id, item.id),
-                            className: 'text-sm opacity-70 hover:opacity-100 active:scale-95 transition'
-                        }, ICON.Trash2)
-                    )),
-
-                    // Add item input per questo gruppo (visibile solo se selezionato)
-                    selectedGroup === group.id && h('div', { className: 'mt-3 flex items-center gap-2' },
-                        h('input', {
-                            type: 'text',
-                            placeholder: 'Aggiungi elemento…',
-                            value: newItemLabel,
-                            onChange: e => setNewItemLabel(e.target.value),
-                            onKeyDown: e => e.key === 'Enter' ? addItem() : null,
-                            className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700 outline-none focus:ring-2 ring-emerald-500'
-                        }),
-                        h('button', {
-                            onClick: addItem,
-                            className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition shadow'
-                        }, h('span', { className: 'text-xl' }, ICON.Plus))
-                    )
-                );
-            }
-
-            return h(
-                'div',
-                { className: 'min-h-screen p-4 sm:p-6 md:p-8 text-slate-100' },
-                h('div', { className: 'max-w-3xl mx-auto' },
-                    // Header
-                    h('header', { className: 'text-center mb-6' },
-                        h('div', { className: 'mx-auto w-min text-5xl mb-3 opacity-60' }, ICON.Plane),
-                        h('input', {
-                            value: title,
-                            onChange: handleTitleChange,
-                            className: 'bg-transparent text-2xl sm:text-3xl font-semibold text-center outline-none border-b border-transparent focus:border-slate-600',
-                        })
-                    ),
-
-                    // Controls
-                    h('div', { className: 'flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4' },
-                        h('select', {
-                            value: selectedGroup,
-                            onChange: e => setSelectedGroup(e.target.value),
-                            className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700 outline-none focus:ring-2 ring-emerald-500'
-                        },
-                            groups.map(g => h('option', { key: g.id, value: g.id }, g.name))
-                        ),
-                        h('button', {
-                            onClick: handleResetChecks,
-                            className: 'px-3 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 active:scale-95 transition shadow flex items-center justify-center gap-2'
-                        }, h('span', null, ICON.RotateCcw), 'Reset selezioni'),
-                        h('button', {
-                            onClick: handleResetAll,
-                            className: 'px-3 py-2 rounded-xl bg-red-600 hover:bg-red-500 active:scale-95 transition shadow flex items-center justify-center gap-2'
-                        }, h('span', null, ICON.X), 'Ripristina tutto')
-                    ),
-
-                    // Groups grid
-                    h('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4' },
-                        groups.map(g => h(GroupCard, { key: g.id, group: g }))
-                    ),
-
-                    // Bottom CTA
-                    h('button', {
-                        onClick: handleResetChecks,
-                        className: 'w-full mt-4 bg-orange-500 hover:bg-orange-400 text-white font-medium rounded-2xl px-4 py-3 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg'
-                    },
-                        ICON.RotateCcw,
-                        'Reset Selezioni per Nuovo Viaggio'
-                    )
-                )
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(h(TravelChecklistApp));
-    </script>
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(h(App));
+  </script>
 </body>
 </html>
