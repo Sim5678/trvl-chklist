@@ -1,207 +1,384 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Travel Checklist - Multi Lists + Drag&Drop</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Checklist</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-slate-100">
-  <div id="root"></div>
-  <script>
-    const { useState, useEffect, createElement: h, useMemo } = React;
-    const ICON = {Plus:'➕', Trash2:'🗑️', GripVertical:'⋮⋮', RotateCcw:'↺', Plane:'✈️', Edit2:'✏️', Check:'✓', X:'✕'};
+<body>
+    <div id="root"></div>
+    
+    <script>
+        const { useState, useEffect, createElement: h } = React;
 
-    const INITIAL_LISTS = [{"id": "viaggio-tango", "name": "Viaggio Tango", "groups": [{"id": "g-0", "name": "Abbigliamento", "items": [{"id": "Abbigliamento-184416572", "label": "mutande", "order": 10}, {"id": "Abbigliamento-781371991", "label": "canottiere", "order": 30}, {"id": "Abbigliamento-973889843", "label": "calzini corti", "order": 40}, {"id": "Abbigliamento-562385949", "label": "calze lunghe", "order": 50}, {"id": "Abbigliamento-352398406", "label": "pantaloni ballo", "order": 60}, {"id": "Abbigliamento-440589367", "label": "pantaloni pescatore", "order": 70}, {"id": "Abbigliamento-609179151", "label": "2 paia scarpe da ballo", "order": 120}, {"id": "Abbigliamento-147711535", "label": "camicie", "order": 190}, {"id": "Abbigliamento-753761502", "label": "cappellino", "order": 340}, {"id": "Abbigliamento-975543409", "label": "pantaloncini corti", "order": 590}, {"id": "Abbigliamento-37053586", "label": "Giacca a vento", "order": 790}, {"id": "Abbigliamento-613751498", "label": "Spray scarpe", "order": 830}, {"id": "Abbigliamento-178552403", "label": "Pantalon crème K", "order": 930}]}, {"id": "g-1", "name": "Salute / Farmaci", "items": [{"id": "Salute / Farmaci-869374945", "label": "condoms", "order": 300}, {"id": "Salute / Farmaci-661876608", "label": "cerotti nasali", "order": 510}, {"id": "Salute / Farmaci-647444918", "label": "arnica", "order": 570}, {"id": "Salute / Farmaci-195770518", "label": "acqua di sirmione/rinazina", "order": 750}, {"id": "Salute / Farmaci-181649960", "label": "Bustine potassio", "order": 780}, {"id": "Salute / Farmaci-195886620", "label": "Autan", "order": 870}]}, {"id": "g-2", "name": "Elettronica", "items": [{"id": "Elettronica-660851524", "label": "powerBank", "order": 220}, {"id": "Elettronica-879449558", "label": "presa schuko", "order": 230}, {"id": "Elettronica-575696180", "label": "adattatore spine", "order": 240}, {"id": "Elettronica-485225599", "label": "carica orologio", "order": 290}, {"id": "Elettronica-536432036", "label": "cuffiette", "order": 370}, {"id": "Elettronica-786867853", "label": "cavi", "order": 550}, {"id": "Elettronica-332989231", "label": "portacavi", "order": 560}, {"id": "Elettronica-959791362", "label": "cellulare lavoro", "order": 650}, {"id": "Elettronica-642584172", "label": "Cuffiette lavoro", "order": 655}, {"id": "Elettronica-402474929", "label": "Cassa acustica", "order": 800}, {"id": "Elettronica-769622614", "label": "Cellulare riserva", "order": 840}, {"id": "Elettronica-550893272", "label": "Mac+aliment. + adattatore + mouse", "order": 850}, {"id": "Elettronica-545136017", "label": "Gommini cuffiette", "order": 890}]}, {"id": "g-3", "name": "Igiene / Toeletta", "items": [{"id": "Igiene / Toeletta-829665122", "label": "asciugamani grande e piccolo", "order": 100}, {"id": "Igiene / Toeletta-868910395", "label": "beauty case", "order": 180}, {"id": "Igiene / Toeletta-189918004", "label": "cera capelli", "order": 250}, {"id": "Igiene / Toeletta-155050059", "label": "flosser", "order": 470}, {"id": "Igiene / Toeletta-791111603", "label": "cotton fioc", "order": 500}, {"id": "Igiene / Toeletta-991816719", "label": "crema mani", "order": 670}, {"id": "Igiene / Toeletta-44991656", "label": "Crema solare", "order": 680}, {"id": "Igiene / Toeletta-69423454", "label": "spazzolino elettrico", "order": 710}, {"id": "Igiene / Toeletta-626765723", "label": "Crema dopo sole", "order": 810}, {"id": "Igiene / Toeletta-319169534", "label": "Burro cacao", "order": 880}, {"id": "Igiene / Toeletta-560702927", "label": "Clorexidina", "order": 910}]}, {"id": "g-4", "name": "Accessori / Vari", "items": [{"id": "Accessori / Vari-385874606", "label": "borsello", "order": 200}, {"id": "Accessori / Vari-792001534", "label": "ombrello", "order": 280}, {"id": "Accessori / Vari-287514841", "label": "ciabatte camera", "order": 320}, {"id": "Accessori / Vari-626219734", "label": "ciabatte piscina", "order": 330}, {"id": "Accessori / Vari-415053336", "label": "attaccapanni", "order": 390}, {"id": "Accessori / Vari-92326638", "label": "occhiali riserva", "order": 400}, {"id": "Accessori / Vari-642066114", "label": "fascia valigia", "order": 440}, {"id": "Accessori / Vari-883089318", "label": "pezzuola occhiali", "order": 480}, {"id": "Accessori / Vari-366029992", "label": "cuscino aereo", "order": 580}, {"id": "Accessori / Vari-215900494", "label": "occhiali da sole", "order": 600}, {"id": "Accessori / Vari-568598800", "label": "custodia occhiali", "order": 690}, {"id": "Accessori / Vari-703456796", "label": "cavatappi", "order": 700}, {"id": "Accessori / Vari-152406308", "label": "borsa della spesa", "order": 740}]}, {"id": "g-5", "name": "Cibo / Snack", "items": [{"id": "Cibo / Snack-862619128", "label": "caramelle", "order": 160}, {"id": "Cibo / Snack-975917305", "label": "bottiglia termica", "order": 170}, {"id": "Cibo / Snack-788931752", "label": "barrette", "order": 610}, {"id": "Cibo / Snack-878948922", "label": "caffè", "order": 630}, {"id": "Cibo / Snack-99417639", "label": "Cibo", "order": 920}]}, {"id": "g-6", "name": "Altro", "items": [{"id": "Altro-581253934", "label": "t-shirt", "order": 20}, {"id": "Altro-984120068", "label": "fazzoletti carta", "order": 80}, {"id": "Altro-617970740", "label": "fazzoletti stoffa", "order": 90}, {"id": "Altro-885557476", "label": "mutantine piedi", "order": 130}, {"id": "Altro-60888749", "label": "zainetto", "order": 140}, {"id": "Altro-841641869", "label": "kway o poncho", "order": 150}, {"id": "Altro-607173258", "label": "ipad", "order": 210}, {"id": "Altro-138439", "label": "Gel capelli", "order": 260}, {"id": "Altro-111504074", "label": "gel igienizzante", "order": 270}, {"id": "Altro-201197176", "label": "costume bagno", "order": 310}, {"id": "Altro-162972072", "label": "mascherine", "order": 350}, {"id": "Altro-102689930", "label": "maglione", "order": 380}, {"id": "Altro-255432716", "label": "penna", "order": 410}, {"id": "Altro-185282829", "label": "incartamento", "order": 420}, {"id": "Altro-536830802", "label": "nastro adesivo", "order": 430}, {"id": "Altro-994969501", "label": "spago stendino", "order": 450}, {"id": "Altro-445077236", "label": "TobraDel", "order": 460}, {"id": "Altro-850024879", "label": "cinture", "order": 490}, {"id": "Altro-325589169", "label": "tappi orecchie", "order": 520}, {"id": "Altro-158784142", "label": "golfino", "order": 530}, {"id": "Altro-379943107", "label": "pastiglie", "order": 540}, {"id": "Altro-137762893", "label": "piastra bialetti", "order": 620}, {"id": "Altro-36377389", "label": "moka", "order": 640}, {"id": "Altro-832280497", "label": "voltadvance", "order": 660}, {"id": "Altro-499454643", "label": "regali", "order": 720}, {"id": "Altro-620647677", "label": "tensiopram", "order": 730}, {"id": "Altro-634229314", "label": "libri", "order": 760}, {"id": "Altro-400449012", "label": "notes", "order": 770}, {"id": "Altro-286538474", "label": "Stick protezione50", "order": 820}, {"id": "Altro-652305669", "label": "Phon", "order": 860}, {"id": "Altro-851877455", "label": "Tazza eco", "order": 900}, {"id": "Altro-354197230", "label": "Kk", "order": 940}, {"id": "Altro-85792885", "label": "Salviette umide", "order": 950}]}, {"id": "g-7", "name": "Documenti", "items": [{"id": "Documenti-218049625", "label": "copie carta identità", "order": 360}]}]}];
-    const DEFAULT_LIST = {
-      id: "base",
-      name: "Base",
-      groups: [
-        { id: "docs", name: "Documenti", items: [] },
-        { id: "tech", name: "Tecnologia", items: [] },
-        { id: "igiene", name: "Igiene / Toeletta", items: [] }
-      ]
-    };
+        // Icone SVG semplici
+        const PlusIcon = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            h('line', { x1: 12, y1: 5, x2: 12, y2: 19 }),
+            h('line', { x1: 5, y1: 12, x2: 19, y2: 12 })
+        );
 
-    function loadState() { try { return JSON.parse(localStorage.getItem('travel-multilist-state')) || null; } catch { return null; } }
-    function saveState(state) { try { localStorage.setItem('travel-multilist-state', JSON.stringify(state)); } catch { } }
-    function slugify(t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+        const TrashIcon = () => h('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            h('polyline', { points: '3 6 5 6 21 6' }),
+            h('path', { d: 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' })
+        );
 
-    function App() {
-      const saved = loadState();
-      const [lists, setLists] = useState(saved && saved.lists ? saved.lists : INITIAL_LISTS.concat([DEFAULT_LIST]));
-      const [activeListId, setActiveListId] = useState(saved && saved.activeListId ? saved.activeListId : (INITIAL_LISTS[0] ? INITIAL_LISTS[0].id : 'base'));
-      const [newListName, setNewListName] = useState('');
-      const [sortMode, setSortMode] = useState(saved && saved.sortMode ? saved.sortMode : 'csv'); // csv | alpha
+        const GripIcon = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            h('circle', { cx: 9, cy: 5, r: 1 }),
+            h('circle', { cx: 9, cy: 12, r: 1 }),
+            h('circle', { cx: 9, cy: 19, r: 1 }),
+            h('circle', { cx: 15, cy: 5, r: 1 }),
+            h('circle', { cx: 15, cy: 12, r: 1 }),
+            h('circle', { cx: 15, cy: 19, r: 1 })
+        );
 
-      useEffect(() => saveState({ lists, activeListId, sortMode }), [lists, activeListId, sortMode]);
+        const ResetIcon = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            h('polyline', { points: '1 4 1 10 7 10' }),
+            h('path', { d: 'M3.51 15a9 9 0 1 0 2.13-9.36L1 10' })
+        );
 
-      const activeList = useMemo(() => lists.find(l => l.id === activeListId) || lists[0], [lists, activeListId]);
+        const PlaneIcon = () => h('svg', { width: 48, height: 48, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            h('path', { d: 'M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z' })
+        );
 
-      function addList() {
-        const name = newListName.trim();
-        if (!name) return;
-        const id = slugify(name) + '-' + Date.now();
-        const newL = { id, name, groups: [] };
-        setLists(prev => prev.concat([newL]));
-        setActiveListId(id);
-        setNewListName('');
-      }
+        const EditIcon = () => h('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            h('path', { d: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' }),
+            h('path', { d: 'M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z' })
+        );
 
-      function addGroup(name) {
-        const n = (name || '').trim();
-        if (!n) return;
-        const id = slugify(n) + '-' + Date.now();
-        const newGroup = { id, name: n, items: [] };
-        setLists(prev => prev.map(l => l.id === activeList.id ? { ...l, groups: l.groups.concat([newGroup]) } : l));
-      }
+        const CheckIcon = ({ size = 16, className = '' }) => h('svg', { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, className },
+            h('polyline', { points: '20 6 9 17 4 12' })
+        );
 
-      function removeGroup(groupId) {
-        if (!confirm('Eliminare questa categoria?')) return;
-        setLists(prev => prev.map(l => l.id === activeList.id ? { ...l, groups: l.groups.filter(g => g.id !== groupId) } : l));
-      }
+        const XIcon = () => h('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+            h('line', { x1: 18, y1: 6, x2: 6, y2: 18 }),
+            h('line', { x1: 6, y1: 6, x2: 18, y2: 18 })
+        );
 
-      function addItem(groupId, label) {
-        const text = (label || '').trim();
-        if (!text) return;
-        const it = { id: groupId + '-' + Date.now(), label: text, order: 999999 };
-        setLists(prev => prev.map(l => l.id === activeList.id ? {
-          ...l,
-          groups: l.groups.map(g => g.id === groupId ? { ...g, items: g.items.concat([it]) } : g)
-        } : l));
-      }
+        function TravelChecklistApp() {
+            const [items, setItems] = useState([]);
+            const [newItem, setNewItem] = useState('');
+            const [theme, setTheme] = useState('light');
+            const [draggedIndex, setDraggedIndex] = useState(null);
+            const [editingId, setEditingId] = useState(null);
+            const [editText, setEditText] = useState('');
 
-      function removeItem(groupId, itemId) {
-        setLists(prev => prev.map(l => l.id === activeList.id ? {
-          ...l,
-          groups: l.groups.map(g => g.id === groupId ? { ...g, items: g.items.filter(i => i.id !== itemId) } : g)
-        } : l));
-      }
+            useEffect(() => {
+                const tg = window.Telegram?.WebApp;
+                
+                if (tg) {
+                    tg.ready();
+                    tg.expand();
+                    
+                    // ⚠️ SICUREZZA: Verifica l'ID dell'utente
+                    const userId = tg.initDataUnsafe?.user?.id;
+                    const AUTHORIZED_USER_IDS = [123456789]; // ⬅️ INSERISCI QUI IL TUO USER ID
+                    
+                    if (userId && !AUTHORIZED_USER_IDS.includes(userId)) {
+                        tg.showAlert('⛔ Accesso non autorizzato. Questa app è privata.', () => {
+                            tg.close();
+                        });
+                        return;
+                    }
+                    
+                    setTheme(tg.colorScheme || 'light');
+                    
+                    const saved = localStorage.getItem('travel_checklist');
+                    if (saved) {
+                        setItems(JSON.parse(saved));
+                    } else {
+                        setItems([
+                            { id: 1, text: 'Passaporto', checked: false, order: 0 },
+                            { id: 2, text: 'Caricabatterie', checked: false, order: 1 },
+                            { id: 3, text: 'Farmaci', checked: false, order: 2 },
+                            { id: 4, text: 'Occhiali da sole', checked: false, order: 3 }
+                        ]);
+                    }
+                    
+                    tg.MainButton.setText('🔄 Reset Selezioni');
+                    tg.MainButton.color = '#FF9500';
+                    tg.MainButton.onClick(() => handleResetChecks());
+                    tg.MainButton.show();
+                } else {
+                    // Modalità sviluppo senza Telegram
+                    const saved = localStorage.getItem('travel_checklist');
+                    if (saved) {
+                        setItems(JSON.parse(saved));
+                    }
+                }
+            }, []);
 
-      // ---------- Drag & Drop (within same category) ----------
-      const [dragData, setDragData] = useState(null); // { groupId, itemId }
+            useEffect(() => {
+                if (items.length > 0) {
+                    localStorage.setItem('travel_checklist', JSON.stringify(items));
+                }
+                
+                const tg = window.Telegram?.WebApp;
+                if (tg && items.length > 0) {
+                    const checked = items.filter(i => i.checked).length;
+                    const total = items.length;
+                    tg.MainButton.setText(`✈️ ${checked}/${total} preparati | 🔄 Reset`);
+                }
+            }, [items]);
 
-      function onDragStart(e, groupId, itemId) {
-        setDragData({ groupId, itemId });
-        try { e.dataTransfer.setData('text/plain', JSON.stringify({ groupId, itemId })); } catch (err) {}
-        e.dataTransfer.effectAllowed = 'move';
-      }
+            const addItem = () => {
+                if (newItem.trim()) {
+                    const item = {
+                        id: Date.now(),
+                        text: newItem.trim(),
+                        checked: false,
+                        order: items.length
+                    };
+                    setItems([...items, item]);
+                    setNewItem('');
+                    
+                    const tg = window.Telegram?.WebApp;
+                    if (tg?.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                    }
+                }
+            };
 
-      function onDragOver(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      }
+            const toggleCheck = (id) => {
+                setItems(items.map(item => 
+                    item.id === id ? { ...item, checked: !item.checked } : item
+                ));
+                
+                const tg = window.Telegram?.WebApp;
+                if (tg?.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+            };
 
-      function renormalizeOrders(items) { return items.map((it, idx) => ({ ...it, order: (idx+1)*10 })); }
+            const deleteItem = (id) => {
+                const tg = window.Telegram?.WebApp;
+                
+                if (tg) {
+                    tg.showConfirm('Eliminare questo elemento?', (confirmed) => {
+                        if (confirmed) {
+                            setItems(items.filter(item => item.id !== id));
+                            if (tg.HapticFeedback) {
+                                tg.HapticFeedback.notificationOccurred('warning');
+                            }
+                        }
+                    });
+                } else {
+                    if (window.confirm('Eliminare questo elemento?')) {
+                        setItems(items.filter(item => item.id !== id));
+                    }
+                }
+            };
 
-      function moveItemSameGroup(groupId, draggedId, targetId) {
-        setLists(prev => prev.map(list => {
-          if (list.id !== activeList.id) return list;
-          const newGroups = list.groups.map(g => {
-            if (g.id !== groupId) return g;
-            const items = g.items.slice();
-            const fromIdx = items.findIndex(i => i.id === draggedId);
-            const toIdx = items.findIndex(i => i.id === targetId);
-            if (fromIdx === -1 || toIdx === -1) return g;
-            const [moved] = items.splice(fromIdx, 1);
-            items.splice(toIdx, 0, moved);
-            return { ...g, items: renormalizeOrders(items) };
-          });
-          return { ...list, groups: newGroups };
-        }));
-      }
+            const handleResetChecks = () => {
+                const tg = window.Telegram?.WebApp;
+                
+                if (tg) {
+                    tg.showConfirm('Reset di tutte le selezioni per un nuovo viaggio?', (confirmed) => {
+                        if (confirmed) {
+                            setItems(items.map(item => ({ ...item, checked: false })));
+                            if (tg.HapticFeedback) {
+                                tg.HapticFeedback.notificationOccurred('success');
+                            }
+                            tg.showAlert('✈️ Pronto per il nuovo viaggio!');
+                        }
+                    });
+                } else {
+                    if (window.confirm('Reset di tutte le selezioni per un nuovo viaggio?')) {
+                        setItems(items.map(item => ({ ...item, checked: false })));
+                        alert('✈️ Pronto per il nuovo viaggio!');
+                    }
+                }
+            };
 
-      function onDrop(e, groupId, targetId) {
-        e.preventDefault();
-        let payload = dragData;
-        if (!payload) {
-          try { payload = JSON.parse(e.dataTransfer.getData('text/plain') || 'null'); } catch { payload = null; }
+            const startEdit = (item) => {
+                setEditingId(item.id);
+                setEditText(item.text);
+            };
+
+            const saveEdit = (id) => {
+                if (editText.trim()) {
+                    setItems(items.map(item => 
+                        item.id === id ? { ...item, text: editText.trim() } : item
+                    ));
+                }
+                setEditingId(null);
+                setEditText('');
+            };
+
+            const cancelEdit = () => {
+                setEditingId(null);
+                setEditText('');
+            };
+
+            const handleDragStart = (index) => {
+                setDraggedIndex(index);
+            };
+
+            const handleDragOver = (e, index) => {
+                e.preventDefault();
+                
+                if (draggedIndex === null || draggedIndex === index) return;
+                
+                const newItems = [...items];
+                const draggedItem = newItems[draggedIndex];
+                
+                newItems.splice(draggedIndex, 1);
+                newItems.splice(index, 0, draggedItem);
+                
+                setDraggedIndex(index);
+                setItems(newItems.map((item, idx) => ({ ...item, order: idx })));
+            };
+
+            const handleDragEnd = () => {
+                setDraggedIndex(null);
+                const tg = window.Telegram?.WebApp;
+                if (tg?.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+            };
+
+            const isDark = theme === 'dark';
+            const bgColor = isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50';
+            const cardBg = isDark ? 'bg-gray-800' : 'bg-white';
+            const textColor = isDark ? 'text-white' : 'text-gray-900';
+            const subtextColor = isDark ? 'text-gray-400' : 'text-gray-600';
+            const inputBg = isDark ? 'bg-gray-700' : 'bg-gray-100';
+            const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
+
+            const checkedItems = items.filter(i => i.checked).length;
+            const totalItems = items.length;
+            const progress = totalItems > 0 ? (checkedItems / totalItems) * 100 : 0;
+
+            return h('div', { className: `min-h-screen ${bgColor} ${textColor} p-4 pb-20` },
+                h('div', { className: 'max-w-2xl mx-auto' },
+                    h('div', { className: 'mb-6 text-center' },
+                        h('div', { className: 'text-5xl mb-3' }, '✈️'),
+                        h('h1', { className: 'text-3xl font-bold mb-2' }, 'Travel Checklist'),
+                        h('p', { className: `${subtextColor} text-sm` }, 'La tua lista da viaggio sempre con te')
+                    ),
+
+                    totalItems > 0 && h('div', { className: `${cardBg} rounded-2xl shadow-lg p-4 mb-4` },
+                        h('div', { className: 'flex justify-between items-center mb-2' },
+                            h('span', { className: 'text-sm font-medium' }, 'Progresso'),
+                            h('span', { className: 'text-sm font-bold text-blue-500' }, `${checkedItems}/${totalItems}`)
+                        ),
+                        h('div', { className: `w-full h-3 ${inputBg} rounded-full overflow-hidden` },
+                            h('div', {
+                                className: 'h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 ease-out',
+                                style: { width: `${progress}%` }
+                            })
+                        ),
+                        progress === 100 && h('p', { className: 'text-center text-green-500 font-medium mt-2 text-sm' }, '🎉 Tutto pronto! Buon viaggio!')
+                    ),
+
+                    h('div', { className: `${cardBg} rounded-2xl shadow-lg p-4 mb-4` },
+                        h('div', { className: 'flex gap-2' },
+                            h('input', {
+                                type: 'text',
+                                value: newItem,
+                                onChange: (e) => setNewItem(e.target.value),
+                                onKeyPress: (e) => e.key === 'Enter' && addItem(),
+                                placeholder: 'Cosa devi portare?',
+                                className: `flex-1 ${inputBg} ${textColor} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500`
+                            }),
+                            h('button', {
+                                onClick: addItem,
+                                disabled: !newItem.trim(),
+                                className: 'bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-xl px-6 py-3 transition-all active:scale-95 flex items-center gap-2 font-medium'
+                            },
+                                h(PlusIcon),
+                                'Aggiungi'
+                            )
+                        )
+                    ),
+
+                    items.length > 0 && h('div', { className: `${subtextColor} text-xs text-center mb-3 flex items-center justify-center gap-2` },
+                        h(GripIcon),
+                        'Trascina gli elementi per riordinarli'
+                    ),
+
+                    h('div', { className: 'space-y-2' },
+                        items.length === 0 ? h('div', { className: `${cardBg} rounded-2xl shadow-lg p-8 text-center ${subtextColor}` },
+                            h('div', { className: 'flex justify-center mb-3' }, h(PlaneIcon)),
+                            h('p', { className: 'text-lg mb-2' }, 'Lista vuota'),
+                            h('p', { className: 'text-sm' }, 'Inizia ad aggiungere gli elementi da portare in viaggio!')
+                        ) : items.map((item, index) =>
+                            h('div', {
+                                key: item.id,
+                                draggable: editingId !== item.id,
+                                onDragStart: () => handleDragStart(index),
+                                onDragOver: (e) => handleDragOver(e, index),
+                                onDragEnd: handleDragEnd,
+                                className: `${cardBg} rounded-xl shadow-md transition-all hover:shadow-lg border ${borderColor} ${draggedIndex === index ? 'opacity-50' : 'opacity-100'} ${item.checked ? 'bg-opacity-50' : ''}`
+                            },
+                                h('div', { className: 'flex items-center gap-3 p-4' },
+                                    editingId !== item.id && h('div', { className: 'cursor-move text-gray-400 hover:text-gray-600' }, h(GripIcon)),
+                                    
+                                    h('button', {
+                                        onClick: () => toggleCheck(item.id),
+                                        disabled: editingId === item.id,
+                                        className: `flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${item.checked ? 'bg-green-500 border-green-500' : `border-gray-400 ${isDark ? 'hover:border-gray-300' : 'hover:border-gray-500'}`}`
+                                    },
+                                        item.checked && h(CheckIcon, { size: 16, className: 'text-white' })
+                                    ),
+                                    
+                                    h('div', { className: 'flex-1 min-w-0' },
+                                        editingId === item.id ? h('input', {
+                                            type: 'text',
+                                            value: editText,
+                                            onChange: (e) => setEditText(e.target.value),
+                                            onKeyPress: (e) => e.key === 'Enter' && saveEdit(item.id),
+                                            className: `w-full ${inputBg} ${textColor} rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500`,
+                                            autoFocus: true
+                                        }) : h('p', { className: `${item.checked ? 'line-through opacity-50' : ''} break-words` }, item.text)
+                                    ),
+                                    
+                                    h('div', { className: 'flex gap-2' },
+                                        editingId === item.id ? [
+                                            h('button', {
+                                                key: 'save',
+                                                onClick: () => saveEdit(item.id),
+                                                className: 'text-green-500 hover:text-green-600 hover:bg-green-50 rounded-lg p-2 transition-all'
+                                            }, h(CheckIcon, { size: 18 })),
+                                            h('button', {
+                                                key: 'cancel',
+                                                onClick: cancelEdit,
+                                                className: 'text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-all'
+                                            }, h(XIcon))
+                                        ] : [
+                                            h('button', {
+                                                key: 'edit',
+                                                onClick: () => startEdit(item),
+                                                className: 'text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-all'
+                                            }, h(EditIcon)),
+                                            h('button', {
+                                                key: 'delete',
+                                                onClick: () => deleteItem(item.id),
+                                                className: 'text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-all'
+                                            }, h(TrashIcon))
+                                        ]
+                                    )
+                                )
+                            )
+                        )
+                    ),
+
+                    items.some(i => i.checked) && h('button', {
+                        onClick: handleResetChecks,
+                        className: 'w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-4 font-medium flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg'
+                    },
+                        h(ResetIcon),
+                        'Reset Selezioni per Nuovo Viaggio'
+                    )
+                )
+            );
         }
-        if (!payload) return;
-        if (payload.groupId !== groupId) return;
-        moveItemSameGroup(groupId, payload.itemId, targetId);
-        setDragData(null);
-      }
 
-      function sortItems(items) {
-        if (sortMode === 'alpha') return items.slice().sort((a,b) => a.label.localeCompare(b.label));
-        return items.slice().sort((a,b) => (a.order ?? 999999) - (b.order ?? 999999) || a.label.localeCompare(b.label));
-      }
-
-      function GroupCard({ group }) {
-        const [newItem, setNewItem] = React.useState('');
-        const sorted = sortItems(group.items);
-        return h('div', { className: 'rounded-2xl p-4 shadow-lg bg-slate-800/60 border border-slate-700' },
-          h('div', { className: 'flex items-center justify-between mb-2' },
-            h('div', { className: 'flex items-center gap-2' },
-              h('span', { className: 'text-2xl' }, ICON.GripVertical),
-              h('h3', { className: 'text-lg font-semibold' }, group.name)
-            ),
-            h('button', { onClick: () => removeGroup(group.id), className: 'text-sm opacity-70 hover:opacity-100' }, ICON.Trash2)
-          ),
-          ...sorted.map(it => h('div', {
-              key: it.id,
-              className: 'flex items-center justify-between py-2 rounded-lg px-2 ' + (sortMode === 'alpha' ? 'opacity-80' : 'bg-slate-900/30'),
-              draggable: sortMode !== 'alpha',
-              onDragStart: (e) => onDragStart(e, group.id, it.id),
-              onDragOver: onDragOver,
-              onDrop: (e) => onDrop(e, group.id, it.id)
-            },
-            h('div', { className: 'flex items-center gap-3' },
-              h('span', { className: 'cursor-grab select-none' }, ICON.GripVertical),
-              h('span', null, it.label)
-            ),
-            h('div', { className: 'flex items-center gap-3 text-sm opacity-80' },
-              h('span', null, (it.order ?? '')),
-              h('button', { onClick: () => removeItem(group.id, it.id), className: 'hover:opacity-100' }, ICON.Trash2)
-            )
-          )),
-          h('div', { className: 'mt-3 flex items-center gap-2' },
-            h('input', { value: newItem, onChange: e => setNewItem(e.target.value), placeholder: 'Aggiungi elemento…', className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700 outline-none focus:ring-2 ring-emerald-500' }),
-            h('button', { onClick: () => { addItem(group.id, newItem); setNewItem(''); }, className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500' }, ICON.Plus)
-          ),
-          sortMode === 'alpha' && h('div', { className: 'text-xs opacity-70 mt-2' }, 'Drag & drop disabilitato in ordinamento alfabetico')
-        );
-      }
-
-      function UI() {
-        const [newGroup, setNewGroup] = useState('');
-        return h('div', { className: 'max-w-4xl mx-auto p-4 sm:p-6 md:p-8' },
-          h('header', { className: 'text-center mb-6' },
-            h('div', { className: 'mx-auto w-min text-5xl mb-3 opacity-60' }, ICON.Plane),
-            h('h1', { className: 'text-2xl sm:text-3xl font-semibold' }, activeList ? activeList.name : 'Lista')
-          ),
-          h('div', { className: 'grid gap-2 sm:grid-cols-3 mb-4' },
-            h('select', { value: activeListId, onChange: e => setActiveListId(e.target.value), className: 'rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' },
-              lists.map(l => h('option', { key: l.id, value: l.id }, l.name))
-            ),
-            h('div', { className: 'flex gap-2' },
-              h('input', { value: newListName, onChange: e => setNewListName(e.target.value), placeholder: 'Nuova lista…', className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' }),
-              h('button', { onClick: addList, className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500' }, ICON.Plus)
-            ),
-            h('select', { value: sortMode, onChange: e => setSortMode(e.target.value), className: 'rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' },
-              h('option', {value:'csv'}, 'Ordine CSV'),
-              h('option', {value:'alpha'}, 'Alfabetico')
-            )
-          ),
-          h('div', { className: 'flex items-center gap-2 mb-3' },
-            h('input', { value: newGroup, onChange: e => setNewGroup(e.target.value), placeholder: 'Nuova categoria…', className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700' }),
-            h('button', { onClick: () => { addGroup(newGroup); setNewGroup(''); }, className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500' }, ICON.Plus)
-          ),
-          h('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4' },
-            (activeList && activeList.groups ? activeList.groups : []).map(g => h(GroupCard, { key: g.id, group: g }))
-          )
-        );
-      }
-
-      return h(UI);
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(h(App));
-  </script>
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(h(TravelChecklistApp));
+    </script>
 </body>
 </html>
