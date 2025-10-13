@@ -8,321 +8,260 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div id="root"></div>
     
     <script>
         const { useState, useEffect, createElement: h } = React;
-        const { Plus, Trash2, GripVertical, RotateCcw, Plane, Edit2, Check, X } = lucide;
+
+        // Telegram WebApp integration helper functions
+        function setTelegramColors() {
+            if (!window.Telegram || !window.Telegram.WebApp) return;
+            const WebApp = window.Telegram.WebApp;
+
+            const tgTheme = WebApp.themeParams || {};
+            const bgColor = tgTheme.bg_color || "#0f172a";
+            const textColor = tgTheme.text_color || "#e5e7eb";
+            const hintColor = tgTheme.hint_color || "#94a3b8";
+            const btnColor = tgTheme.button_color || "#22c55e";
+            const btnTextColor = tgTheme.button_text_color || "#ffffff";
+
+            WebApp.setHeaderColor(bgColor);
+            WebApp.setBottomBarColor(bgColor);
+            WebApp.setBackgroundColor(bgColor);
+            WebApp.setHeaderColor(bgColor);
+
+            document.documentElement.style.setProperty("--bg-color", bgColor);
+            document.documentElement.style.setProperty("--text-color", textColor);
+            document.documentElement.style.setProperty("--hint-color", hintColor);
+            document.documentElement.style.setProperty("--btn-color", btnColor);
+            document.documentElement.style.setProperty("--btn-text-color", btnTextColor);
+
+            document.body.style.backgroundColor = bgColor;
+            document.body.style.color = textColor;
+        }
+
+        function readyTelegram() {
+            if (!window.Telegram || !window.Telegram.WebApp) return;
+            const WebApp = window.Telegram.WebApp;
+            try { WebApp.ready(); } catch (_) {}
+            try { WebApp.expand(); } catch (_) {}
+        }
+
+        // Sostituisce lucide con una semplice mappa di “icone” (emoji) per evitare l’errore React #130
+        const ICON = {Plus:'➕', Trash2:'🗑️', GripVertical:'⋮⋮', RotateCcw:'↺', Plane:'✈️', Edit2:'✏️', Check:'✓', X:'✕'};
+
+        // Dati iniziali
+        const DEFAULT_GROUPS = [
+            {
+                id: "docs",
+                name: "Documenti",
+                items: [
+                    { id: "passport", label: "Passaporto / Carta d'identità" },
+                    { id: "tickets", label: "Biglietti / Boarding pass" },
+                    { id: "insurance", label: "Assicurazione viaggio" }
+                ]
+            },
+            {
+                id: "tech",
+                name: "Tecnologia",
+                items: [
+                    { id: "phone", label: "Telefono" },
+                    { id: "charger", label: "Caricabatterie" },
+                    { id: "powerbank", label: "Power bank" }
+                ]
+            },
+            {
+                id: "toiletries",
+                name: "Toeletta",
+                items: [
+                    { id: "toothbrush", label: "Spazzolino" },
+                    { id: "toothpaste", label: "Dentifricio" },
+                    { id: "deodorant", label: "Deodorante" }
+                ]
+            }
+        ];
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem("travel-checklist-state");
+                return raw ? JSON.parse(raw) : null;
+            } catch {
+                return null;
+            }
+        }
+
+        function saveState(state) {
+            try {
+                localStorage.setItem("travel-checklist-state", JSON.stringify(state));
+            } catch {}
+        }
 
         function TravelChecklistApp() {
-            const [items, setItems] = useState([]);
-            const [newItem, setNewItem] = useState('');
-            const [theme, setTheme] = useState('light');
-            const [draggedIndex, setDraggedIndex] = useState(null);
-            const [editingId, setEditingId] = useState(null);
-            const [editText, setEditText] = useState('');
+            const [groups, setGroups] = useState(() => {
+                const saved = loadState();
+                return saved?.groups || DEFAULT_GROUPS;
+            });
+            const [checks, setChecks] = useState(() => {
+                const saved = loadState();
+                return saved?.checks || {};
+            });
+            const [title, setTitle] = useState(() => {
+                const saved = loadState();
+                return saved?.title || "Checklist Viaggio";
+            });
+            const [newItemLabel, setNewItemLabel] = useState("");
+            const [selectedGroup, setSelectedGroup] = useState(groups[0]?.id || "docs");
 
             useEffect(() => {
-                const tg = window.Telegram?.WebApp;
-                
-                if (tg) {
-                    tg.ready();
-                    tg.expand();
-                    
-                    // ⚠️ SICUREZZA: Verifica l'ID dell'utente
-                    const userId = tg.initDataUnsafe?.user?.id;
-                    const AUTHORIZED_USER_IDS = [44660766]; // ⬅️ INSERISCI QUI IL TUO USER ID
-                    
-                    if (!userId || !AUTHORIZED_USER_IDS.includes(userId)) {
-                        tg.showAlert('⛔ Accesso non autorizzato. Questa app è privata.', () => {
-                            tg.close();
-                        });
-                        return;
-                    }
-                    
-                    setTheme(tg.colorScheme || 'light');
-                    
-                    const saved = localStorage.getItem('travel_checklist');
-                    if (saved) {
-                        setItems(JSON.parse(saved));
-                    } else {
-                        setItems([
-                            { id: 1, text: 'Passaporto', checked: false, order: 0 },
-                            { id: 2, text: 'Caricabatterie', checked: false, order: 1 },
-                            { id: 3, text: 'Farmaci', checked: false, order: 2 },
-                            { id: 4, text: 'Occhiali da sole', checked: false, order: 3 }
-                        ]);
-                    }
-                    
-                    tg.MainButton.setText('🔄 Reset Selezioni');
-                    tg.MainButton.color = '#FF9500';
-                    tg.MainButton.onClick(handleResetChecks);
-                    tg.MainButton.show();
-                }
+                setTelegramColors();
+                readyTelegram();
             }, []);
 
             useEffect(() => {
-                if (items.length > 0) {
-                    localStorage.setItem('travel_checklist', JSON.stringify(items));
-                }
-                
-                const tg = window.Telegram?.WebApp;
-                if (tg && items.length > 0) {
-                    const checked = items.filter(i => i.checked).length;
-                    const total = items.length;
-                    tg.MainButton.setText(`✈️ ${checked}/${total} preparati | 🔄 Reset`);
-                }
-            }, [items]);
+                saveState({ groups, checks, title });
+            }, [groups, checks, title]);
 
-            const addItem = () => {
-                if (newItem.trim()) {
-                    const item = {
-                        id: Date.now(),
-                        text: newItem.trim(),
-                        checked: false,
-                        order: items.length
-                    };
-                    setItems([...items, item]);
-                    setNewItem('');
-                    
-                    const tg = window.Telegram?.WebApp;
-                    if (tg?.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
-                }
-            };
+            function toggleCheck(id) {
+                setChecks(prev => ({ ...prev, [id]: !prev[id] }));
+            }
 
-            const toggleCheck = (id) => {
-                setItems(items.map(item => 
-                    item.id === id ? { ...item, checked: !item.checked } : item
-                ));
-                
-                const tg = window.Telegram?.WebApp;
-                if (tg?.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('light');
-                }
-            };
+            function addItem() {
+                const trimmed = newItemLabel.trim();
+                if (!trimmed) return;
+                setGroups(prev => prev.map(g => g.id === selectedGroup ? {
+                    ...g,
+                    items: [...g.items, { id: `${g.id}-${Date.now()}`, label: trimmed }]
+                } : g));
+                setNewItemLabel("");
+            }
 
-            const deleteItem = (id) => {
-                const tg = window.Telegram?.WebApp;
-                
-                if (tg) {
-                    tg.showConfirm('Eliminare questo elemento?', (confirmed) => {
-                        if (confirmed) {
-                            setItems(items.filter(item => item.id !== id));
-                            if (tg.HapticFeedback) {
-                                tg.HapticFeedback.notificationOccurred('warning');
-                            }
-                        }
-                    });
-                } else {
-                    if (window.confirm('Eliminare questo elemento?')) {
-                        setItems(items.filter(item => item.id !== id));
-                    }
-                }
-            };
+            function removeItem(groupId, itemId) {
+                setGroups(prev => prev.map(g => g.id === groupId ? {
+                    ...g,
+                    items: g.items.filter(i => i.id !== itemId)
+                } : g));
+                setChecks(prev => {
+                    const cp = { ...prev };
+                    delete cp[itemId];
+                    return cp;
+                });
+            }
 
-            const handleResetChecks = () => {
-                const tg = window.Telegram?.WebApp;
-                
-                if (tg) {
-                    tg.showConfirm('Reset di tutte le selezioni per un nuovo viaggio?', (confirmed) => {
-                        if (confirmed) {
-                            setItems(items.map(item => ({ ...item, checked: false })));
-                            if (tg.HapticFeedback) {
-                                tg.HapticFeedback.notificationOccurred('success');
-                            }
-                            tg.showAlert('✈️ Pronto per il nuovo viaggio!');
-                        }
-                    });
-                } else {
-                    if (window.confirm('Reset di tutte le selezioni per un nuovo viaggio?')) {
-                        setItems(items.map(item => ({ ...item, checked: false })));
-                    }
-                }
-            };
+            function handleResetChecks() {
+                setChecks({});
+            }
 
-            const startEdit = (item) => {
-                setEditingId(item.id);
-                setEditText(item.text);
-            };
+            function handleResetAll() {
+                if (!confirm("Sicuro di voler ripristinare i dati iniziali?")) return;
+                setGroups(DEFAULT_GROUPS);
+                setChecks({});
+                setTitle("Checklist Viaggio");
+            }
 
-            const saveEdit = (id) => {
-                if (editText.trim()) {
-                    setItems(items.map(item => 
-                        item.id === id ? { ...item, text: editText.trim() } : item
-                    ));
-                }
-                setEditingId(null);
-                setEditText('');
-            };
+            function handleTitleChange(e) {
+                setTitle(e.target.value);
+            }
 
-            const cancelEdit = () => {
-                setEditingId(null);
-                setEditText('');
-            };
+            function GroupCard({ group }) {
+                const done = group.items.filter(i => checks[i.id]).length;
+                const total = group.items.length;
+                const allDone = total > 0 && done === total;
 
-            const handleDragStart = (index) => {
-                setDraggedIndex(index);
-            };
-
-            const handleDragOver = (e, index) => {
-                e.preventDefault();
-                
-                if (draggedIndex === null || draggedIndex === index) return;
-                
-                const newItems = [...items];
-                const draggedItem = newItems[draggedIndex];
-                
-                newItems.splice(draggedIndex, 1);
-                newItems.splice(index, 0, draggedItem);
-                
-                setDraggedIndex(index);
-                setItems(newItems.map((item, idx) => ({ ...item, order: idx })));
-            };
-
-            const handleDragEnd = () => {
-                setDraggedIndex(null);
-                const tg = window.Telegram?.WebApp;
-                if (tg?.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('medium');
-                }
-            };
-
-            const isDark = theme === 'dark';
-            const bgColor = isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50';
-            const cardBg = isDark ? 'bg-gray-800' : 'bg-white';
-            const textColor = isDark ? 'text-white' : 'text-gray-900';
-            const subtextColor = isDark ? 'text-gray-400' : 'text-gray-600';
-            const inputBg = isDark ? 'bg-gray-700' : 'bg-gray-100';
-            const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
-
-            const checkedItems = items.filter(i => i.checked).length;
-            const totalItems = items.length;
-            const progress = totalItems > 0 ? (checkedItems / totalItems) * 100 : 0;
-
-            return h('div', { className: `min-h-screen ${bgColor} ${textColor} p-4 pb-20` },
-                h('div', { className: 'max-w-2xl mx-auto' },
-                    h('div', { className: 'mb-6 text-center' },
-                        h('div', { className: 'text-5xl mb-3' }, '✈️'),
-                        h('h1', { className: 'text-3xl font-bold mb-2' }, 'Travel Checklist'),
-                        h('p', { className: `${subtextColor} text-sm` }, 'La tua lista da viaggio sempre con te')
-                    ),
-
-                    totalItems > 0 && h('div', { className: `${cardBg} rounded-2xl shadow-lg p-4 mb-4` },
-                        h('div', { className: 'flex justify-between items-center mb-2' },
-                            h('span', { className: 'text-sm font-medium' }, 'Progresso'),
-                            h('span', { className: 'text-sm font-bold text-blue-500' }, `${checkedItems}/${totalItems}`)
+                return h(
+                    'div',
+                    { className: 'rounded-2xl p-4 shadow-lg bg-slate-800/60 border border-slate-700' },
+                    h('div', { className: 'flex items-center justify-between mb-2' },
+                        h('div', { className: 'flex items-center gap-2' },
+                            h('span', { className: 'text-2xl' }, ICON.GripVertical),
+                            h('h3', { className: 'text-lg font-semibold' }, group.name)
                         ),
-                        h('div', { className: `w-full h-3 ${inputBg} rounded-full overflow-hidden` },
-                            h('div', {
-                                className: 'h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 ease-out',
-                                style: { width: `${progress}%` }
-                            })
-                        ),
-                        progress === 100 && h('p', { className: 'text-center text-green-500 font-medium mt-2 text-sm' }, '🎉 Tutto pronto! Buon viaggio!')
+                        h('span', { className: 'text-sm opacity-70' }, `${done}/${total}`)
                     ),
 
-                    h('div', { className: `${cardBg} rounded-2xl shadow-lg p-4 mb-4` },
-                        h('div', { className: 'flex gap-2' },
-                            h('input', {
-                                type: 'text',
-                                value: newItem,
-                                onChange: (e) => setNewItem(e.target.value),
-                                onKeyPress: (e) => e.key === 'Enter' && addItem(),
-                                placeholder: 'Cosa devi portare?',
-                                className: `flex-1 ${inputBg} ${textColor} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500`
-                            }),
-                            h('button', {
-                                onClick: addItem,
-                                disabled: !newItem.trim(),
-                                className: 'bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-xl px-6 py-3 transition-all active:scale-95 flex items-center gap-2 font-medium'
-                            },
-                                h(Plus, { size: 20 }),
-                                'Aggiungi'
-                            )
-                        )
-                    ),
-
-                    items.length > 0 && h('div', { className: `${subtextColor} text-xs text-center mb-3 flex items-center justify-center gap-2` },
-                        h(GripVertical, { size: 14 }),
-                        'Trascina gli elementi per riordinarli'
-                    ),
-
-                    h('div', { className: 'space-y-2' },
-                        items.length === 0 ? h('div', { className: `${cardBg} rounded-2xl shadow-lg p-8 text-center ${subtextColor}` },
-                            h(Plane, { size: 48, className: 'mx-auto mb-3 opacity-50' }),
-                            h('p', { className: 'text-lg mb-2' }, 'Lista vuota'),
-                            h('p', { className: 'text-sm' }, 'Inizia ad aggiungere gli elementi da portare in viaggio!')
-                        ) : items.map((item, index) =>
-                            h('div', {
-                                key: item.id,
-                                draggable: editingId !== item.id,
-                                onDragStart: () => handleDragStart(index),
-                                onDragOver: (e) => handleDragOver(e, index),
-                                onDragEnd: handleDragEnd,
-                                className: `${cardBg} rounded-xl shadow-md transition-all hover:shadow-lg border ${borderColor} ${draggedIndex === index ? 'opacity-50' : 'opacity-100'} ${item.checked ? 'bg-opacity-50' : ''}`
-                            },
-                                h('div', { className: 'flex items-center gap-3 p-4' },
-                                    editingId !== item.id && h('div', { className: 'cursor-move text-gray-400 hover:text-gray-600' }, h(GripVertical, { size: 20 })),
-                                    
-                                    h('button', {
-                                        onClick: () => toggleCheck(item.id),
-                                        disabled: editingId === item.id,
-                                        className: `flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${item.checked ? 'bg-green-500 border-green-500' : `border-gray-400 ${isDark ? 'hover:border-gray-300' : 'hover:border-gray-500'}`}`
-                                    },
-                                        item.checked && h(Check, { size: 16, className: 'text-white' })
-                                    ),
-                                    
-                                    h('div', { className: 'flex-1 min-w-0' },
-                                        editingId === item.id ? h('input', {
-                                            type: 'text',
-                                            value: editText,
-                                            onChange: (e) => setEditText(e.target.value),
-                                            onKeyPress: (e) => e.key === 'Enter' && saveEdit(item.id),
-                                            className: `w-full ${inputBg} ${textColor} rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500`,
-                                            autoFocus: true
-                                        }) : h('p', { className: `${item.checked ? 'line-through opacity-50' : ''} break-words` }, item.text)
-                                    ),
-                                    
-                                    h('div', { className: 'flex gap-2' },
-                                        editingId === item.id ? [
-                                            h('button', {
-                                                key: 'save',
-                                                onClick: () => saveEdit(item.id),
-                                                className: 'text-green-500 hover:text-green-600 hover:bg-green-50 rounded-lg p-2 transition-all'
-                                            }, h(Check, { size: 18 })),
-                                            h('button', {
-                                                key: 'cancel',
-                                                onClick: cancelEdit,
-                                                className: 'text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-all'
-                                            }, h(X, { size: 18 }))
-                                        ] : [
-                                            h('button', {
-                                                key: 'edit',
-                                                onClick: () => startEdit(item),
-                                                className: 'text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-all'
-                                            }, h(Edit2, { size: 18 })),
-                                            h('button', {
-                                                key: 'delete',
-                                                onClick: () => deleteItem(item.id),
-                                                className: 'text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-all'
-                                            }, h(Trash2, { size: 18 }))
-                                        ]
-                                    )
-                                )
-                            )
-                        )
-                    ),
-
-                    items.some(i => i.checked) && h('button', {
-                        onClick: handleResetChecks,
-                        className: 'w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-4 font-medium flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg'
+                    // Items
+                    ...group.items.map(item => h('label', {
+                        key: item.id,
+                        className: 'flex items-center justify-between gap-3 py-2'
                     },
-                        h(RotateCcw, { size: 20 }),
+                        h('div', { className: 'flex items-center gap-3' },
+                            h('input', {
+                                type: 'checkbox',
+                                checked: !!checks[item.id],
+                                onChange: () => toggleCheck(item.id),
+                                className: 'size-5 rounded border-slate-600 accent-emerald-500'
+                            }),
+                            h('span', { className: checks[item.id] ? 'line-through opacity-60' : '' }, item.label)
+                        ),
+                        h('button', {
+                            onClick: () => removeItem(group.id, item.id),
+                            className: 'text-sm opacity-70 hover:opacity-100 active:scale-95 transition'
+                        }, ICON.Trash2)
+                    )),
+
+                    // Add item input per questo gruppo (visibile solo se selezionato)
+                    selectedGroup === group.id && h('div', { className: 'mt-3 flex items-center gap-2' },
+                        h('input', {
+                            type: 'text',
+                            placeholder: 'Aggiungi elemento…',
+                            value: newItemLabel,
+                            onChange: e => setNewItemLabel(e.target.value),
+                            onKeyDown: e => e.key === 'Enter' ? addItem() : null,
+                            className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700 outline-none focus:ring-2 ring-emerald-500'
+                        }),
+                        h('button', {
+                            onClick: addItem,
+                            className: 'px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition shadow'
+                        }, h('span', { className: 'text-xl' }, ICON.Plus))
+                    )
+                );
+            }
+
+            return h(
+                'div',
+                { className: 'min-h-screen p-4 sm:p-6 md:p-8 text-slate-100' },
+                h('div', { className: 'max-w-3xl mx-auto' },
+                    // Header
+                    h('header', { className: 'text-center mb-6' },
+                        h('div', { className: 'mx-auto w-min text-5xl mb-3 opacity-60' }, ICON.Plane),
+                        h('input', {
+                            value: title,
+                            onChange: handleTitleChange,
+                            className: 'bg-transparent text-2xl sm:text-3xl font-semibold text-center outline-none border-b border-transparent focus:border-slate-600',
+                        })
+                    ),
+
+                    // Controls
+                    h('div', { className: 'flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4' },
+                        h('select', {
+                            value: selectedGroup,
+                            onChange: e => setSelectedGroup(e.target.value),
+                            className: 'flex-1 rounded-xl bg-slate-900 px-3 py-2 border border-slate-700 outline-none focus:ring-2 ring-emerald-500'
+                        },
+                            groups.map(g => h('option', { key: g.id, value: g.id }, g.name))
+                        ),
+                        h('button', {
+                            onClick: handleResetChecks,
+                            className: 'px-3 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 active:scale-95 transition shadow flex items-center justify-center gap-2'
+                        }, h('span', null, ICON.RotateCcw), 'Reset selezioni'),
+                        h('button', {
+                            onClick: handleResetAll,
+                            className: 'px-3 py-2 rounded-xl bg-red-600 hover:bg-red-500 active:scale-95 transition shadow flex items-center justify-center gap-2'
+                        }, h('span', null, ICON.X), 'Ripristina tutto')
+                    ),
+
+                    // Groups grid
+                    h('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4' },
+                        groups.map(g => h(GroupCard, { key: g.id, group: g }))
+                    ),
+
+                    // Bottom CTA
+                    h('button', {
+                        onClick: handleResetChecks,
+                        className: 'w-full mt-4 bg-orange-500 hover:bg-orange-400 text-white font-medium rounded-2xl px-4 py-3 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg'
+                    },
+                        ICON.RotateCcw,
                         'Reset Selezioni per Nuovo Viaggio'
                     )
                 )
