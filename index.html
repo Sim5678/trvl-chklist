@@ -31,6 +31,18 @@
                 if (tg) {
                     tg.ready();
                     tg.expand();
+                    
+                    // ⚠️ SICUREZZA: Verifica l'ID dell'utente
+                    const userId = tg.initDataUnsafe?.user?.id;
+                    const AUTHORIZED_USER_IDS = [123456789]; // ⬅️ INSERISCI QUI IL TUO USER ID
+                    
+                    if (!userId || !AUTHORIZED_USER_IDS.includes(userId)) {
+                        tg.showAlert('⛔ Accesso non autorizzato. Questa app è privata.', () => {
+                            tg.close();
+                        });
+                        return;
+                    }
+                    
                     setTheme(tg.colorScheme || 'light');
                     
                     const saved = localStorage.getItem('travel_checklist');
