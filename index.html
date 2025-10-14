@@ -208,7 +208,9 @@
             // Salva sempre su localStorage quando cambiano gli items
             useEffect(() => {
                 if (items.length > 0) {
-                    localStorage.setItem('travel_checklist', JSON.stringify(items));
+                    const dataToSave = JSON.stringify(items);
+                    localStorage.setItem('travel_checklist', dataToSave);
+                    console.log('SALVATO:', items.length, 'elementi');
                 }
                 
                 const tg = window.Telegram?.WebApp;
@@ -258,37 +260,58 @@
             };
 
             const deleteItem = (id) => {
-                if (window.confirm('Eliminare questo elemento?')) {
+                const tg = window.Telegram?.WebApp;
+                
+                const doDelete = () => {
                     setItems(items.filter(item => item.id !== id));
                     
-                    const tg = window.Telegram?.WebApp;
                     if (tg?.HapticFeedback) {
                         tg.HapticFeedback.notificationOccurred('warning');
+                    }
+                };
+                
+                if (tg) {
+                    tg.showConfirm('Eliminare questo elemento dalla lista?', doDelete);
+                } else {
+                    if (window.confirm('Eliminare questo elemento dalla lista?')) {
+                        doDelete();
                     }
                 }
             };
 
             const handleResetChecks = () => {
+                console.log('RESET CHIAMATO - Elementi prima:', items.length);
+                
                 const tg = window.Telegram?.WebApp;
                 
                 const doReset = () => {
-                    setItems(items.map(item => ({ ...item, checked: false })));
+                    console.log('RESET CONFERMATO - Elementi prima:', items.length);
+                    const updatedItems = items.map(item => ({ ...item, checked: false }));
+                    console.log('RESET CONFERMATO - Elementi dopo:', updatedItems.length);
+                    setItems(updatedItems);
                     
                     if (tg?.HapticFeedback) {
                         tg.HapticFeedback.notificationOccurred('success');
                     }
                     
-                    if (tg) {
-                        tg.showAlert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
-                    } else {
-                        alert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
-                    }
+                    setTimeout(() => {
+                        if (tg) {
+                            tg.showAlert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
+                        } else {
+                            alert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
+                        }
+                    }, 100);
                 };
                 
                 if (tg) {
-                    tg.showConfirm('Reset di tutte le selezioni per un nuovo viaggio?\n\n⚠️ Gli elementi non verranno eliminati, solo deselezionati.', doReset);
+                    tg.showConfirm('Reset delle SOLE selezioni per un nuovo viaggio?\n\n⚠️ Gli elementi NON verranno eliminati!', (confirmed) => {
+                        console.log('Telegram confirm callback:', confirmed);
+                        if (confirmed !== false) {
+                            doReset();
+                        }
+                    });
                 } else {
-                    if (window.confirm('Reset di tutte le selezioni per un nuovo viaggio?\n\n⚠️ Gli elementi non verranno eliminati, solo deselezionati.')) {
+                    if (window.confirm('Reset delle SOLE selezioni per un nuovo viaggio?\n\n⚠️ Gli elementi NON verranno eliminati!')) {
                         doReset();
                     }
                 }
@@ -344,7 +367,11 @@
             return h('div', { className: `min-h-screen ${bgColor} ${textColor} p-4 pb-20` },
                 h('div', { className: 'max-w-2xl mx-auto' },
                     h('div', { className: 'mb-6 text-center' },
-                        h('div', { className: 'text-5xl mb-3' }, '✈️'),
+                        h('div', { className: 'flex justify-between items-start mb-3' },
+                            h('div', { className: 'flex-1' }),
+                            h('div', { className: 'text-5xl' }, '✈️'),
+                            h('div', { className: `flex-1 text-right ${subtextColor} text-xs pt-2` }, 'v1.0.1')
+                        ),
                         h('h1', { className: 'text-3xl font-bold mb-2' }, 'Travel Checklist'),
                         h('p', { className: `${subtextColor} text-sm` }, 'La tua lista da viaggio sempre con te')
                     ),
