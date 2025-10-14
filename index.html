@@ -154,10 +154,9 @@
             const [newItem, setNewItem] = useState('');
             const [newOrder, setNewOrder] = useState('');
             const [theme, setTheme] = useState('light');
-            const [editingId, setEditingId] = useState(null);
-            const [editText, setEditText] = useState('');
-            const [editOrder, setEditOrder] = useState('');
+            const [editingItem, setEditingItem] = useState(null);
 
+            // Carica dati al mount
             useEffect(() => {
                 const tg = window.Telegram?.WebApp;
                 
@@ -165,9 +164,8 @@
                     tg.ready();
                     tg.expand();
                     
-                    // Verifica l'ID dell'utente
                     const userId = tg.initDataUnsafe?.user?.id;
-                    const AUTHORIZED_USER_IDS = [44660766]; // ⬅️ INSERISCI IL TUO USER ID
+                    const AUTHORIZED_USER_IDS = [123456789]; // ⬅️ INSERISCI IL TUO USER ID
                     
                     if (userId && !AUTHORIZED_USER_IDS.includes(userId)) {
                         tg.showAlert('⛔ Accesso non autorizzato. Questa app è privata.', () => {
@@ -178,63 +176,36 @@
                     
                     setTheme(tg.colorScheme || 'light');
                     
-                    // Forza sempre il caricamento dei dati iniziali (puoi commentare questa riga dopo il primo caricamento)
-                    const initialItems = INITIAL_DATA.map((item, idx) => ({
-                        id: Date.now() + idx,
-                        text: item.text,
-                        order: item.order,
-                        checked: false
-                    }));
-                    setItems(initialItems);
-                    
-                    // Decommentare questo blocco dopo il primo caricamento per usare i dati salvati:
-                    /*
-                    const saved = localStorage.getItem('travel_checklist');
-                    if (saved) {
-                        setItems(JSON.parse(saved));
-                    } else {
-                        const initialItems = INITIAL_DATA.map((item, idx) => ({
-                            id: Date.now() + idx,
-                            text: item.text,
-                            order: item.order,
-                            checked: false
-                        }));
-                        setItems(initialItems);
-                    }
-                    */
-                    
                     tg.MainButton.setText('🔄 Reset Selezioni');
                     tg.MainButton.color = '#FF9500';
                     tg.MainButton.onClick(() => handleResetChecks());
                     tg.MainButton.show();
-                } else {
-                    // Modalità sviluppo - forza caricamento dati iniziali
-                    const initialItems = INITIAL_DATA.map((item, idx) => ({
-                        id: Date.now() + idx,
-                        text: item.text,
-                        order: item.order,
-                        checked: false
-                    }));
-                    setItems(initialItems);
-                    
-                    // Decommentare per usare localStorage anche senza Telegram:
-                    /*
-                    const saved = localStorage.getItem('travel_checklist');
-                    if (saved) {
+                }
+                
+                // Carica sempre da localStorage (o inizializza se vuoto)
+                const saved = localStorage.getItem('travel_checklist');
+                if (saved) {
+                    try {
                         setItems(JSON.parse(saved));
-                    } else {
-                        const initialItems = INITIAL_DATA.map((item, idx) => ({
-                            id: Date.now() + idx,
-                            text: item.text,
-                            order: item.order,
-                            checked: false
-                        }));
-                        setItems(initialItems);
+                    } catch (e) {
+                        initializeData();
                     }
-                    */
+                } else {
+                    initializeData();
                 }
             }, []);
 
+            const initializeData = () => {
+                const initialItems = INITIAL_DATA.map((item, idx) => ({
+                    id: Date.now() + idx,
+                    text: item.text,
+                    order: item.order,
+                    checked: false
+                }));
+                setItems(initialItems);
+            };
+
+            // Salva sempre su localStorage quando cambiano gli items
             useEffect(() => {
                 if (items.length > 0) {
                     localStorage.setItem('travel_checklist', JSON.stringify(items));
@@ -244,11 +215,10 @@
                 if (tg && items.length > 0) {
                     const checked = items.filter(i => i.checked).length;
                     const total = items.length;
-                    tg.MainButton.setText(`✈️ ${checked}/${total} preparati | 🔄 Reset`);
+                    tg.MainButton.setText(`✈️ ${checked}/${total} | 🔄 Reset`);
                 }
             }, [items]);
 
-            // Ordina automaticamente gli items per valore order
             const sortedItems = [...items].sort((a, b) => a.order - b.order);
 
             const addItem = () => {
@@ -299,58 +269,50 @@
             };
 
             const handleResetChecks = () => {
-                const tg = window.Telegram?.WebApp;
-                
-                if (tg) {
-                    tg.showConfirm('Reset di tutte le selezioni per un nuovo viaggio?', (confirmed) => {
-                        if (confirmed) {
-                            setItems(items.map(item => ({ ...item, checked: false })));
-                            if (tg.HapticFeedback) {
-                                tg.HapticFeedback.notificationOccurred('success');
-                            }
-                            tg.showAlert('✈️ Pronto per il nuovo viaggio!');
-                        }
-                    });
-                } else {
-                    if (window.confirm('Reset di tutte le selezioni per un nuovo viaggio?')) {
-                        setItems(items.map(item => ({ ...item, checked: false })));
-                        alert('✈️ Pronto per il nuovo viaggio!');
+                if (window.confirm('Reset di tutte le selezioni per un nuovo viaggio?')) {
+                    setItems(items.map(item => ({ ...item, checked: false })));
+                    
+                    const tg = window.Telegram?.WebApp;
+                    if (tg?.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('success');
                     }
+                    alert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
                 }
             };
 
             const startEdit = (item) => {
-                setEditingId(item.id);
-                setEditText(item.text);
-                setEditOrder(item.order.toString());
+                setEditingItem({
+                    id: item.id,
+                    text: item.text,
+                    order: item.order.toString()
+                });
             };
 
-            const saveEdit = (id) => {
-                if (editText.trim() && editOrder.trim()) {
-                    const orderNum = parseInt(editOrder);
+            const saveEdit = () => {
+                if (editingItem && editingItem.text.trim() && editingItem.order.trim()) {
+                    const orderNum = parseInt(editingItem.order);
                     if (isNaN(orderNum)) {
                         alert('Il valore numerico deve essere un numero valido');
                         return;
                     }
                     
                     setItems(items.map(item => 
-                        item.id === id ? { ...item, text: editText.trim(), order: orderNum } : item
+                        item.id === editingItem.id 
+                            ? { ...item, text: editingItem.text.trim(), order: orderNum } 
+                            : item
                     ));
                     
                     const tg = window.Telegram?.WebApp;
                     if (tg?.HapticFeedback) {
                         tg.HapticFeedback.impactOccurred('light');
                     }
+                    
+                    setEditingItem(null);
                 }
-                setEditingId(null);
-                setEditText('');
-                setEditOrder('');
             };
 
             const cancelEdit = () => {
-                setEditingId(null);
-                setEditText('');
-                setEditOrder('');
+                setEditingItem(null);
             };
 
             const isDark = theme === 'dark';
@@ -428,61 +390,25 @@
                                 h('div', { className: 'flex items-center gap-3 p-4' },
                                     h('button', {
                                         onClick: () => toggleCheck(item.id),
-                                        disabled: editingId === item.id,
                                         className: `flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${item.checked ? 'bg-green-500 border-green-500' : `border-gray-400 ${isDark ? 'hover:border-gray-300' : 'hover:border-gray-500'}`}`
                                     },
                                         item.checked && h(CheckIcon, { size: 16, className: 'text-white' })
                                     ),
                                     
-                                    h('div', { className: 'flex-1 min-w-0' },
-                                        editingId === item.id ? 
-                                            h('div', { className: 'flex gap-2' },
-                                                h('input', {
-                                                    type: 'text',
-                                                    value: editText,
-                                                    onChange: (e) => setEditText(e.target.value),
-                                                    className: `flex-1 ${inputBg} ${textColor} rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500`,
-                                                    autoFocus: true
-                                                }),
-                                                h('input', {
-                                                    type: 'number',
-                                                    value: editOrder,
-                                                    onChange: (e) => setEditOrder(e.target.value),
-                                                    onKeyPress: (e) => e.key === 'Enter' && saveEdit(item.id),
-                                                    className: `w-20 ${inputBg} ${textColor} rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-blue-500 text-center`,
-                                                    placeholder: 'N°'
-                                                })
-                                            )
-                                        : h('div', { className: 'flex items-center gap-3' },
-                                            h('span', { className: `${subtextColor} text-sm font-mono w-12 text-right flex-shrink-0` }, item.order),
-                                            h('p', { className: `${item.checked ? 'line-through opacity-50' : ''} break-words flex-1` }, item.text)
-                                        )
+                                    h('div', { className: 'flex items-center gap-3 flex-1 min-w-0' },
+                                        h('span', { className: `${subtextColor} text-sm font-mono w-12 text-right flex-shrink-0` }, item.order),
+                                        h('p', { className: `${item.checked ? 'line-through opacity-50' : ''} break-words flex-1` }, item.text)
                                     ),
                                     
                                     h('div', { className: 'flex gap-2' },
-                                        editingId === item.id ? [
-                                            h('button', {
-                                                key: 'save',
-                                                onClick: () => saveEdit(item.id),
-                                                className: 'text-green-500 hover:text-green-600 hover:bg-green-50 rounded-lg p-2 transition-all'
-                                            }, h(CheckIcon, { size: 18 })),
-                                            h('button', {
-                                                key: 'cancel',
-                                                onClick: cancelEdit,
-                                                className: 'text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-all'
-                                            }, h(XIcon))
-                                        ] : [
-                                            h('button', {
-                                                key: 'edit',
-                                                onClick: () => startEdit(item),
-                                                className: 'text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-all'
-                                            }, h(EditIcon)),
-                                            h('button', {
-                                                key: 'delete',
-                                                onClick: () => deleteItem(item.id),
-                                                className: 'text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-all'
-                                            }, h(TrashIcon))
-                                        ]
+                                        h('button', {
+                                            onClick: () => startEdit(item),
+                                            className: 'text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg p-2 transition-all'
+                                        }, h(EditIcon)),
+                                        h('button', {
+                                            onClick: () => deleteItem(item.id),
+                                            className: 'text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg p-2 transition-all'
+                                        }, h(TrashIcon))
                                     )
                                 )
                             )
@@ -495,6 +421,54 @@
                     },
                         h(ResetIcon),
                         'Reset Selezioni per Nuovo Viaggio'
+                    )
+                ),
+
+                // Modal di modifica
+                editingItem && h('div', {
+                    className: 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50',
+                    onClick: cancelEdit
+                },
+                    h('div', {
+                        className: `${cardBg} rounded-2xl shadow-2xl p-6 max-w-md w-full`,
+                        onClick: (e) => e.stopPropagation()
+                    },
+                        h('h3', { className: 'text-xl font-bold mb-4' }, 'Modifica Elemento'),
+                        
+                        h('div', { className: 'space-y-4' },
+                            h('div', null,
+                                h('label', { className: `block text-sm font-medium mb-2 ${subtextColor}` }, 'Nome elemento'),
+                                h('input', {
+                                    type: 'text',
+                                    value: editingItem.text,
+                                    onChange: (e) => setEditingItem({ ...editingItem, text: e.target.value }),
+                                    className: `w-full ${inputBg} ${textColor} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500`,
+                                    autoFocus: true
+                                })
+                            ),
+                            
+                            h('div', null,
+                                h('label', { className: `block text-sm font-medium mb-2 ${subtextColor}` }, 'Valore numerico'),
+                                h('input', {
+                                    type: 'number',
+                                    value: editingItem.order,
+                                    onChange: (e) => setEditingItem({ ...editingItem, order: e.target.value }),
+                                    onKeyPress: (e) => e.key === 'Enter' && saveEdit(),
+                                    className: `w-full ${inputBg} ${textColor} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500`
+                                })
+                            ),
+                            
+                            h('div', { className: 'flex gap-3 pt-2' },
+                                h('button', {
+                                    onClick: cancelEdit,
+                                    className: 'flex-1 bg-gray-500 hover:bg-gray-600 text-white rounded-xl py-3 font-medium transition-all active:scale-95'
+                                }, 'Annulla'),
+                                h('button', {
+                                    onClick: saveEdit,
+                                    className: 'flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-xl py-3 font-medium transition-all active:scale-95'
+                                }, 'Salva')
+                            )
+                        )
                     )
                 )
             );
