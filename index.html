@@ -269,14 +269,28 @@
             };
 
             const handleResetChecks = () => {
-                if (window.confirm('Reset di tutte le selezioni per un nuovo viaggio?')) {
+                const tg = window.Telegram?.WebApp;
+                
+                const doReset = () => {
                     setItems(items.map(item => ({ ...item, checked: false })));
                     
-                    const tg = window.Telegram?.WebApp;
                     if (tg?.HapticFeedback) {
                         tg.HapticFeedback.notificationOccurred('success');
                     }
-                    alert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
+                    
+                    if (tg) {
+                        tg.showAlert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
+                    } else {
+                        alert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
+                    }
+                };
+                
+                if (tg) {
+                    tg.showConfirm('Reset di tutte le selezioni per un nuovo viaggio?\n\n⚠️ Gli elementi non verranno eliminati, solo deselezionati.', doReset);
+                } else {
+                    if (window.confirm('Reset di tutte le selezioni per un nuovo viaggio?\n\n⚠️ Gli elementi non verranno eliminati, solo deselezionati.')) {
+                        doReset();
+                    }
                 }
             };
 
