@@ -13,7 +13,7 @@
     <div id="root"></div>
     
     <script>
-        const { useState, useEffect, createElement: h } = React;
+        const { useState, useEffect, useCallback, createElement: h } = React;
 
         // Icone SVG
         const PlusIcon = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
@@ -178,7 +178,7 @@
                     
                     tg.MainButton.setText('🔄 Reset Selezioni');
                     tg.MainButton.color = '#FF9500';
-                    tg.MainButton.onClick(() => handleResetChecks());
+                    tg.MainButton.onClick(() => confirmResetChecks());
                     tg.MainButton.show();
                 }
                 
@@ -279,40 +279,41 @@
                 }
             };
 
-            const handleResetChecks = () => {
-                console.log('RESET CHIAMATO - Elementi prima:', items.length);
+            const handleResetChecks = useCallback(() => {
+                setItems(currentItems => {
+                    console.log('RESET - Items prima:', currentItems.length);
+                    const resetItems = currentItems.map(item => ({ ...item, checked: false }));
+                    console.log('RESET - Items dopo:', resetItems.length);
+                    return resetItems;
+                });
                 
                 const tg = window.Telegram?.WebApp;
+                if (tg?.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
                 
-                const doReset = () => {
-                    console.log('RESET CONFERMATO - Elementi prima:', items.length);
-                    const updatedItems = items.map(item => ({ ...item, checked: false }));
-                    console.log('RESET CONFERMATO - Elementi dopo:', updatedItems.length);
-                    setItems(updatedItems);
-                    
-                    if (tg?.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
+                setTimeout(() => {
+                    const tg = window.Telegram?.WebApp;
+                    if (tg) {
+                        tg.showAlert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
+                    } else {
+                        alert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
                     }
-                    
-                    setTimeout(() => {
-                        if (tg) {
-                            tg.showAlert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
-                        } else {
-                            alert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
-                        }
-                    }, 100);
-                };
+                }, 100);
+            }, []);
+
+            const confirmResetChecks = () => {
+                const tg = window.Telegram?.WebApp;
                 
                 if (tg) {
-                    tg.showConfirm('Reset delle SOLE selezioni per un nuovo viaggio?\n\n⚠️ Gli elementi NON verranno eliminati!', (confirmed) => {
-                        console.log('Telegram confirm callback:', confirmed);
+                    tg.showConfirm('Azzerare SOLO le selezioni?\n\n⚠️ Gli elementi NON verranno cancellati!', (confirmed) => {
                         if (confirmed !== false) {
-                            doReset();
+                            handleResetChecks();
                         }
                     });
                 } else {
-                    if (window.confirm('Reset delle SOLE selezioni per un nuovo viaggio?\n\n⚠️ Gli elementi NON verranno eliminati!')) {
-                        doReset();
+                    if (window.confirm('Azzerare SOLO le selezioni?\n\n⚠️ Gli elementi NON verranno cancellati!')) {
+                        handleResetChecks();
                     }
                 }
             };
@@ -370,7 +371,7 @@
                         h('div', { className: 'flex justify-between items-start mb-3' },
                             h('div', { className: 'flex-1' }),
                             h('div', { className: 'text-5xl' }, '✈️'),
-                            h('div', { className: `flex-1 text-right ${subtextColor} text-xs pt-2` }, 'v1.1.0')
+                            h('div', { className: `flex-1 text-right ${subtextColor} text-xs pt-2` }, 'v1.2.0')
                         ),
                         h('h1', { className: 'text-3xl font-bold mb-2' }, 'Travel Checklist'),
                         h('p', { className: `${subtextColor} text-sm` }, 'La tua lista da viaggio sempre con te')
@@ -471,7 +472,7 @@
                     ),
 
                     items.some(i => i.checked) && h('button', {
-                        onClick: handleResetChecks,
+                        onClick: confirmResetChecks,
                         className: 'w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-4 font-medium flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg'
                     },
                         h(ResetIcon),
