@@ -252,8 +252,14 @@
                 const saved = localStorage.getItem('travel_checklist');
                 if (saved) {
                     try {
-                        setItems(JSON.parse(saved));
+                        const parsedItems = JSON.parse(saved);
+                        // Aggiorna elementi vecchi senza categoria
+                        const updatedItems = updateOldItems(parsedItems);
+                        setItems(updatedItems);
+                        // Salva gli elementi aggiornati
+                        localStorage.setItem('travel_checklist', JSON.stringify(updatedItems));
                     } catch (e) {
+                        console.error('Errore nel caricamento:', e);
                         initializeData();
                     }
                 } else {
@@ -270,6 +276,19 @@
                     checked: false
                 }));
                 setItems(initialItems);
+            };
+
+            // Funzione per aggiornare elementi vecchi aggiungendo la categoria
+            const updateOldItems = (oldItems) => {
+                return oldItems.map(item => {
+                    if (!item.category) {
+                        return {
+                            ...item,
+                            category: ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie"
+                        };
+                    }
+                    return item;
+                });
             };
 
             useEffect(() => {
