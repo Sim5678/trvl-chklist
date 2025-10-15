@@ -325,14 +325,23 @@
 
             const sortedItems = [...items].sort((a, b) => a.order - b.order);
             
+            console.log('=== RENDERING ===');
+            console.log('Items totali:', items.length);
+            console.log('SortedItems:', sortedItems.length);
+            
             // Assicuriamoci che OGNI item abbia una categoria valida
             const itemsWithValidCategory = sortedItems.map(item => ({
                 ...item,
                 category: item.category && CATEGORY_COLORS[item.category] ? item.category : 'Varie'
             }));
             
+            console.log('ItemsWithValidCategory:', itemsWithValidCategory.length);
+            console.log('Prime 3 categorie:', itemsWithValidCategory.slice(0, 3).map(i => i.category));
+            
             const categories = ['Abbigliamento', 'Calzature', 'Igiene', 'Elettronica', 'Documenti', 'Accessori', 'Cibo', 'Salute', 'Svago', 'Varie'];
             const categoriesWithItems = categories.filter(cat => itemsWithValidCategory.some(item => item.category === cat));
+            
+            console.log('Categorie con items:', categoriesWithItems);
 
             const checkedItems = items.filter(i => i.checked).length;
             const totalItems = items.length;
@@ -340,8 +349,6 @@
 
             return h('div', { className: `min-h-screen ${bgColor} ${textColor} p-4 pb-20` },
                 h('div', { className: 'max-w-2xl mx-auto' },
-                    debugInfo && h('div', { className: 'mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg text-sm font-mono whitespace-pre-wrap' }, debugInfo),
-                    
                     h('div', { className: 'mb-6 text-center' },
                         h('div', { className: 'text-5xl mb-3' }, '✈️'),
                         h('h1', { className: 'text-3xl font-bold mb-2' }, 'Travel Checklist'),
