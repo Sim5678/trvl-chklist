@@ -158,7 +158,7 @@
                     
                     setTheme(tg.colorScheme || 'light');
                     
-                    tg.MainButton.setText('🔄 Reset Selezioniaaaa');
+                    tg.MainButton.setText('🔄 Reset Selezioni');
                     tg.MainButton.color = '#FF9500';
                     tg.MainButton.onClick(handleResetChecks);
                     
@@ -175,11 +175,18 @@
                 if (saved) {
                     try {
                         const parsedItems = JSON.parse(saved);
-                        const updatedItems = parsedItems.map(item => ({
-                            ...item,
-                            category: item.category || ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie"
-                        }));
-                        setItems(updatedItems);
+                        
+                        // Se il localStorage contiene un array vuoto o non valido, reinizializza
+                        if (!parsedItems || !Array.isArray(parsedItems) || parsedItems.length === 0) {
+                            console.log('localStorage vuoto o non valido, reinizializzo');
+                            initializeData();
+                        } else {
+                            const updatedItems = parsedItems.map(item => ({
+                                ...item,
+                                category: item.category || ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie"
+                            }));
+                            setItems(updatedItems);
+                        }
                     } catch (e) {
                         console.error('Errore caricamento:', e);
                         initializeData();
