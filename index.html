@@ -13,7 +13,7 @@
     <div id="root"></div>
     
     <script>
-        const { useState, useEffect, createElement: h } = React;
+        const { useState, useEffect, useCallback, createElement: h } = React;
 
         // Icone SVG
         const PlusIcon = () => h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
@@ -139,6 +139,13 @@
             const [editingItem, setEditingItem] = useState(null);
             const [debugInfo, setDebugInfo] = useState('');
 
+            // Salva su localStorage quando cambiano gli items
+            useEffect(() => {
+                if (items.length > 0) {
+                    localStorage.setItem('travel_checklist', JSON.stringify(items));
+                }
+            }, [items]);
+            
             useEffect(() => {
                 const tg = window.Telegram?.WebApp;
                 
