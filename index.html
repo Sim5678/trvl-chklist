@@ -44,46 +44,30 @@
             h('polyline', { points: '20 6 9 17 4 12' })
         );
 
-        const XIcon = () => h('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
-            h('line', { x1: 18, y1: 6, x2: 6, y2: 18 }),
-            h('line', { x1: 6, y1: 6, x2: 18, y2: 18 })
-        );
-
         // Mapping di categorie
         const ITEM_CATEGORIES = {
-            // Abbigliamento
             "mutande": "Abbigliamento", "t-shirt": "Abbigliamento", "canottiere": "Abbigliamento",
             "calzini corti": "Abbigliamento", "calze lunghe": "Abbigliamento", "pantaloni ballo": "Abbigliamento",
             "pantaloni pescatore": "Abbigliamento", "camicie": "Abbigliamento", "cappellino": "Abbigliamento",
             "golfino": "Abbigliamento", "maglione": "Abbigliamento", "pantaloncini corti": "Abbigliamento",
             "costume bagno": "Abbigliamento", "cinture": "Abbigliamento", "giacca a vento": "Abbigliamento",
-            "kway o poncho": "Abbigliamento", "pantalon crÃ¨me k": "Abbigliamento",
-            
-            // Calzature
+            "kway o poncho": "Abbigliamento", "pantalon crème k": "Abbigliamento",
             "2 paia scarpe da ballo": "Calzature", "ciabatte camera": "Calzature", "ciabatte piscina": "Calzature",
             "mutantine piedi": "Calzature",
-            
-            // Igiene e Cura
-            "asciugamani grande e piccolo": "Igiene e Cura", "beauty case": "Igiene e Cura", "cotton fioc": "Igiene e Cura",
-            "cerotti nasali": "Igiene e Cura", "flosser": "Igiene e Cura", "pezzuola occhiali": "Igiene e Cura",
-            "cera capelli": "Igiene e Cura", "gel capelli": "Igiene e Cura", "gel igienizzante": "Igiene e Cura",
-            "ombrello": "Igiene e Cura", "burro cacao": "Igiene e Cura", "spazzolino elettrico": "Igiene e Cura",
-            "crema mani": "Igiene e Cura", "crema solare": "Igiene e Cura", "stick protezione50": "Igiene e Cura",
-            "crema dopo sole": "Igiene e Cura", "phon": "Igiene e Cura", "spray scarpe": "Igiene e Cura",
-            "salviette umide": "Igiene e Cura", "clorexidina": "Igiene e Cura", "tazza eco": "Igiene e Cura",
-            "fazzoletti carta": "Igiene e Cura", "fazzoletti stoffa": "Igiene e Cura",
-            
-            // Elettronica
+            "asciugamani grande e piccolo": "Igiene", "beauty case": "Igiene", "cotton fioc": "Igiene",
+            "cerotti nasali": "Igiene", "flosser": "Igiene", "pezzuola occhiali": "Igiene",
+            "cera capelli": "Igiene", "gel capelli": "Igiene", "gel igienizzante": "Igiene",
+            "ombrello": "Igiene", "burro cacao": "Igiene", "spazzolino elettrico": "Igiene",
+            "crema mani": "Igiene", "crema solare": "Igiene", "stick protezione50": "Igiene",
+            "crema dopo sole": "Igiene", "phon": "Igiene", "spray scarpe": "Igiene",
+            "salviette umide": "Igiene", "clorexidina": "Igiene", "tazza eco": "Igiene",
+            "fazzoletti carta": "Igiene", "fazzoletti stoffa": "Igiene",
             "adattatore spine": "Elettronica", "presa schuko": "Elettronica", "powerbank": "Elettronica",
             "ipad": "Elettronica", "cellulare lavoro": "Elettronica", "cellulare riserva": "Elettronica",
             "cuffiette lavoro": "Elettronica", "cavi": "Elettronica", "portacavi": "Elettronica",
             "carica orologio": "Elettronica", "mac+aliment. + adattatore + mouse": "Elettronica",
             "cassa acustica": "Elettronica", "gommini cuffiette": "Elettronica",
-            
-            // Documenti
-            "copie carta identitÃ ": "Documenti",
-            
-            // Accessori
+            "copie carta identità ": "Documenti",
             "2 fasce ginocchio": "Accessori", "zainetto": "Accessori", "borsello": "Accessori",
             "borsa della spesa": "Accessori", "bottiglia termica": "Accessori", "cuscino aereo": "Accessori",
             "fascia valigia": "Accessori", "nastro adesivo": "Accessori", "spago stendino": "Accessori",
@@ -91,129 +75,59 @@
             "incartamento": "Accessori", "tappi orecchie": "Accessori", "cavatappi": "Accessori",
             "occhiali riserva": "Accessori", "custodia occhiali": "Accessori", "occhiali da sole": "Accessori",
             "cuffiette": "Accessori", "mascherine": "Accessori", "condoms": "Accessori",
-            
-            // Cibo
-            "caramelle": "Cibo", "caffÃ¨": "Cibo", "moka": "Cibo", "piastra bialetti": "Cibo",
+            "caramelle": "Cibo", "caffè": "Cibo", "moka": "Cibo", "piastra bialetti": "Cibo",
             "cibo": "Cibo", "bustine potassio": "Cibo",
-            
-            // Salute
             "arnica": "Salute", "pastiglie": "Salute", "autan": "Salute", "tobradel": "Salute",
             "acqua di sirmione/rinazina": "Salute", "tensiopram": "Salute", "voltadvance": "Salute",
-            
-            // Svago
             "regali": "Svago", "libri": "Svago", "notes": "Svago"
         };
 
         const CATEGORY_COLORS = {
-            "Abbigliamento": { light: "bg-blue-100 border-blue-300", dark: "dark:bg-blue-900 dark:border-blue-700", badge: "bg-blue-500", text: "text-blue-600 dark:text-blue-400" },
-            "Calzature": { light: "bg-green-100 border-green-300", dark: "dark:bg-green-900 dark:border-green-700", badge: "bg-green-500", text: "text-green-600 dark:text-green-400" },
-            "Igiene e Cura": { light: "bg-pink-100 border-pink-300", dark: "dark:bg-pink-900 dark:border-pink-700", badge: "bg-pink-500", text: "text-pink-600 dark:text-pink-400" },
-            "Elettronica": { light: "bg-purple-100 border-purple-300", dark: "dark:bg-purple-900 dark:border-purple-700", badge: "bg-purple-500", text: "text-purple-600 dark:text-purple-400" },
-            "Documenti": { light: "bg-orange-100 border-orange-300", dark: "dark:bg-orange-900 dark:border-orange-700", badge: "bg-orange-500", text: "text-orange-600 dark:text-orange-400" },
-            "Accessori": { light: "bg-amber-100 border-amber-300", dark: "dark:bg-amber-900 dark:border-amber-700", badge: "bg-amber-500", text: "text-amber-600 dark:text-amber-400" },
-            "Cibo": { light: "bg-red-100 border-red-300", dark: "dark:bg-red-900 dark:border-red-700", badge: "bg-red-500", text: "text-red-600 dark:text-red-400" },
-            "Salute": { light: "bg-teal-100 border-teal-300", dark: "dark:bg-teal-900 dark:border-teal-700", badge: "bg-teal-500", text: "text-teal-600 dark:text-teal-400" },
-            "Svago": { light: "bg-indigo-100 border-indigo-300", dark: "dark:bg-indigo-900 dark:border-indigo-700", badge: "bg-indigo-500", text: "text-indigo-600 dark:text-indigo-400" }
+            "Abbigliamento": { bg: "bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20", border: "border-blue-300 dark:border-blue-700", badge: "bg-blue-500" },
+            "Calzature": { bg: "bg-green-50 dark:bg-green-900 dark:bg-opacity-20", border: "border-green-300 dark:border-green-700", badge: "bg-green-500" },
+            "Igiene": { bg: "bg-pink-50 dark:bg-pink-900 dark:bg-opacity-20", border: "border-pink-300 dark:border-pink-700", badge: "bg-pink-500" },
+            "Elettronica": { bg: "bg-purple-50 dark:bg-purple-900 dark:bg-opacity-20", border: "border-purple-300 dark:border-purple-700", badge: "bg-purple-500" },
+            "Documenti": { bg: "bg-orange-50 dark:bg-orange-900 dark:bg-opacity-20", border: "border-orange-300 dark:border-orange-700", badge: "bg-orange-500" },
+            "Accessori": { bg: "bg-amber-50 dark:bg-amber-900 dark:bg-opacity-20", border: "border-amber-300 dark:border-amber-700", badge: "bg-amber-500" },
+            "Cibo": { bg: "bg-red-50 dark:bg-red-900 dark:bg-opacity-20", border: "border-red-300 dark:border-red-700", badge: "bg-red-500" },
+            "Salute": { bg: "bg-teal-50 dark:bg-teal-900 dark:bg-opacity-20", border: "border-teal-300 dark:border-teal-700", badge: "bg-teal-500" },
+            "Svago": { bg: "bg-indigo-50 dark:bg-indigo-900 dark:bg-opacity-20", border: "border-indigo-300 dark:border-indigo-700", badge: "bg-indigo-500" },
+            "Varie": { bg: "bg-gray-50 dark:bg-gray-800", border: "border-gray-300 dark:border-gray-700", badge: "bg-gray-500" }
         };
 
-        // Dati iniziali
         const INITIAL_DATA = [
-            { text: "mutande", order: 10 },
-            { text: "t-shirt", order: 20 },
-            { text: "canottiere", order: 30 },
-            { text: "calzini corti", order: 40 },
-            { text: "calze lunghe", order: 50 },
-            { text: "pantaloni ballo", order: 60 },
-            { text: "pantaloni pescatore", order: 70 },
-            { text: "fazzoletti carta", order: 80 },
-            { text: "fazzoletti stoffa", order: 90 },
-            { text: "asciugamani grande e piccolo", order: 100 },
-            { text: "2 fasce ginocchio", order: 110 },
-            { text: "2 paia scarpe da ballo", order: 120 },
-            { text: "mutantine piedi", order: 130 },
-            { text: "zainetto", order: 140 },
-            { text: "kway o poncho", order: 150 },
-            { text: "caramelle", order: 160 },
-            { text: "bottiglia termica", order: 170 },
-            { text: "beauty case", order: 180 },
-            { text: "camicie", order: 190 },
-            { text: "borsello", order: 200 },
-            { text: "ipad", order: 210 },
-            { text: "powerBank", order: 220 },
-            { text: "presa schuko", order: 230 },
-            { text: "adattatore spine", order: 240 },
-            { text: "cera capelli", order: 250 },
-            { text: "Gel capelli", order: 260 },
-            { text: "gel igienizzante", order: 270 },
-            { text: "ombrello", order: 280 },
-            { text: "carica orologio", order: 290 },
-            { text: "condoms", order: 300 },
-            { text: "costume bagno", order: 310 },
-            { text: "ciabatte camera", order: 320 },
-            { text: "ciabatte piscina", order: 330 },
-            { text: "cappellino", order: 340 },
-            { text: "mascherine", order: 350 },
-            { text: "copie carta identitÃ ", order: 360 },
-            { text: "cuffiette", order: 370 },
-            { text: "maglione", order: 380 },
-            { text: "attaccapanni", order: 390 },
-            { text: "occhiali riserva", order: 400 },
-            { text: "penna", order: 410 },
-            { text: "incartamento", order: 420 },
-            { text: "nastro adesivo", order: 430 },
-            { text: "fascia valigia", order: 440 },
-            { text: "spago stendino", order: 450 },
-            { text: "TobraDel", order: 460 },
-            { text: "flosser", order: 470 },
-            { text: "pezzuola occhiali", order: 480 },
-            { text: "cinture", order: 490 },
-            { text: "cotton fioc", order: 500 },
-            { text: "cerotti nasali", order: 510 },
-            { text: "tappi orecchie", order: 520 },
-            { text: "golfino", order: 530 },
-            { text: "pastiglie", order: 540 },
-            { text: "cavi", order: 550 },
-            { text: "portacavi", order: 560 },
-            { text: "arnica", order: 570 },
-            { text: "cuscino aereo", order: 580 },
-            { text: "pantaloncini corti", order: 590 },
-            { text: "occhiali da sole", order: 600 },
-            { text: "barrette", order: 610 },
-            { text: "piastra bialetti", order: 620 },
-            { text: "caffÃ¨", order: 630 },
-            { text: "moka", order: 640 },
-            { text: "cellulare lavoro", order: 650 },
-            { text: "Cuffiette lavoro", order: 655 },
-            { text: "voltadvance", order: 660 },
-            { text: "crema mani", order: 670 },
-            { text: "Crema solare", order: 680 },
-            { text: "custodia occhiali", order: 690 },
-            { text: "cavatappi", order: 700 },
-            { text: "spazzolino elettrico", order: 710 },
-            { text: "regali", order: 720 },
-            { text: "tensiopram", order: 730 },
-            { text: "borsa della spesa", order: 740 },
-            { text: "acqua di sirmione/rinazina", order: 750 },
-            { text: "libri", order: 760 },
-            { text: "notes", order: 770 },
-            { text: "Bustine potassio", order: 780 },
-            { text: "Giacca a vento", order: 790 },
-            { text: "Cassa acustica", order: 800 },
-            { text: "Crema dopo sole", order: 810 },
-            { text: "Stick protezione50", order: 820 },
-            { text: "Spray scarpe", order: 830 },
-            { text: "Cellulare riserva", order: 840 },
-            { text: "Mac+aliment. + adattatore + mouse", order: 850 },
-            { text: "Phon", order: 860 },
-            { text: "Autan", order: 870 },
-            { text: "Burro cacao", order: 880 },
-            { text: "Gommini cuffiette", order: 890 },
-            { text: "Tazza eco", order: 900 },
-            { text: "Clorexidina", order: 910 },
-            { text: "Cibo", order: 920 },
-            { text: "Pantalon crÃ¨me K", order: 930 },
-            { text: "Kk", order: 940 },
-            { text: "Salviette umide", order: 950 }
+            { text: "mutande", order: 10 }, { text: "t-shirt", order: 20 }, { text: "canottiere", order: 30 },
+            { text: "calzini corti", order: 40 }, { text: "calze lunghe", order: 50 }, { text: "pantaloni ballo", order: 60 },
+            { text: "pantaloni pescatore", order: 70 }, { text: "fazzoletti carta", order: 80 }, { text: "fazzoletti stoffa", order: 90 },
+            { text: "asciugamani grande e piccolo", order: 100 }, { text: "2 fasce ginocchio", order: 110 }, { text: "2 paia scarpe da ballo", order: 120 },
+            { text: "mutantine piedi", order: 130 }, { text: "zainetto", order: 140 }, { text: "kway o poncho", order: 150 },
+            { text: "caramelle", order: 160 }, { text: "bottiglia termica", order: 170 }, { text: "beauty case", order: 180 },
+            { text: "camicie", order: 190 }, { text: "borsello", order: 200 }, { text: "ipad", order: 210 },
+            { text: "powerBank", order: 220 }, { text: "presa schuko", order: 230 }, { text: "adattatore spine", order: 240 },
+            { text: "cera capelli", order: 250 }, { text: "Gel capelli", order: 260 }, { text: "gel igienizzante", order: 270 },
+            { text: "ombrello", order: 280 }, { text: "carica orologio", order: 290 }, { text: "condoms", order: 300 },
+            { text: "costume bagno", order: 310 }, { text: "ciabatte camera", order: 320 }, { text: "ciabatte piscina", order: 330 },
+            { text: "cappellino", order: 340 }, { text: "mascherine", order: 350 }, { text: "copie carta identità ", order: 360 },
+            { text: "cuffiette", order: 370 }, { text: "maglione", order: 380 }, { text: "attaccapanni", order: 390 },
+            { text: "occhiali riserva", order: 400 }, { text: "penna", order: 410 }, { text: "incartamento", order: 420 },
+            { text: "nastro adesivo", order: 430 }, { text: "fascia valigia", order: 440 }, { text: "spago stendino", order: 450 },
+            { text: "TobraDel", order: 460 }, { text: "flosser", order: 470 }, { text: "pezzuola occhiali", order: 480 },
+            { text: "cinture", order: 490 }, { text: "cotton fioc", order: 500 }, { text: "cerotti nasali", order: 510 },
+            { text: "tappi orecchie", order: 520 }, { text: "golfino", order: 530 }, { text: "pastiglie", order: 540 },
+            { text: "cavi", order: 550 }, { text: "portacavi", order: 560 }, { text: "arnica", order: 570 },
+            { text: "cuscino aereo", order: 580 }, { text: "pantaloncini corti", order: 590 }, { text: "occhiali da sole", order: 600 },
+            { text: "barrette", order: 610 }, { text: "piastra bialetti", order: 620 }, { text: "caffè", order: 630 },
+            { text: "moka", order: 640 }, { text: "cellulare lavoro", order: 650 }, { text: "Cuffiette lavoro", order: 655 },
+            { text: "voltadvance", order: 660 }, { text: "crema mani", order: 670 }, { text: "Crema solare", order: 680 },
+            { text: "custodia occhiali", order: 690 }, { text: "cavatappi", order: 700 }, { text: "spazzolino elettrico", order: 710 },
+            { text: "regali", order: 720 }, { text: "tensiopram", order: 730 }, { text: "borsa della spesa", order: 740 },
+            { text: "acqua di sirmione/rinazina", order: 750 }, { text: "libri", order: 760 }, { text: "notes", order: 770 },
+            { text: "Bustine potassio", order: 780 }, { text: "Giacca a vento", order: 790 }, { text: "Cassa acustica", order: 800 },
+            { text: "Crema dopo sole", order: 810 }, { text: "Stick protezione50", order: 820 }, { text: "Spray scarpe", order: 830 },
+            { text: "Cellulare riserva", order: 840 }, { text: "Mac+aliment. + adattatore + mouse", order: 850 }, { text: "Phon", order: 860 },
+            { text: "Autan", order: 870 }, { text: "Burro cacao", order: 880 }, { text: "Gommini cuffiette", order: 890 },
+            { text: "Tazza eco", order: 900 }, { text: "Clorexidina", order: 910 }, { text: "Cibo", order: 920 },
+            { text: "Pantalon crème K", order: 930 }, { text: "Kk", order: 940 }, { text: "Salviette umide", order: 950 }
         ];
 
         function TravelChecklistApp() {
@@ -232,7 +146,7 @@
                     tg.expand();
                     
                     const userId = tg.initDataUnsafe?.user?.id;
-                    const AUTHORIZED_USER_IDS = [44660766]; // ⬅️ INSERISCI IL TUO USER ID
+                    const AUTHORIZED_USER_IDS = [44660766]; // ⬅️ INSERISCI IL TUO USER ID QUI
                     
                     if (userId && !AUTHORIZED_USER_IDS.includes(userId)) {
                         tg.showAlert('❌ Accesso non autorizzato. Questa app è privata.', () => {
@@ -253,13 +167,13 @@
                 if (saved) {
                     try {
                         const parsedItems = JSON.parse(saved);
-                        // Aggiorna elementi vecchi senza categoria
-                        const updatedItems = updateOldItems(parsedItems);
+                        const updatedItems = parsedItems.map(item => ({
+                            ...item,
+                            category: item.category || ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie"
+                        }));
                         setItems(updatedItems);
-                        // Salva gli elementi aggiornati
-                        localStorage.setItem('travel_checklist', JSON.stringify(updatedItems));
                     } catch (e) {
-                        console.error('Errore nel caricamento:', e);
+                        console.error('Errore caricamento:', e);
                         initializeData();
                     }
                 } else {
@@ -278,19 +192,6 @@
                 setItems(initialItems);
             };
 
-            // Funzione per aggiornare elementi vecchi aggiungendo la categoria
-            const updateOldItems = (oldItems) => {
-                return oldItems.map(item => {
-                    if (!item.category) {
-                        return {
-                            ...item,
-                            category: ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie"
-                        };
-                    }
-                    return item;
-                });
-            };
-
             useEffect(() => {
                 if (items.length > 0) {
                     localStorage.setItem('travel_checklist', JSON.stringify(items));
@@ -303,9 +204,6 @@
                     tg.MainButton.setText(`✅ ${checked}/${total} | 🔄 Reset`);
                 }
             }, [items]);
-
-            const sortedItems = [...items].sort((a, b) => a.order - b.order);
-            const categories = Array.from(new Set(sortedItems.map(item => item.category))).sort();
 
             const addItem = () => {
                 if (newItem.trim() && newOrder.trim()) {
@@ -372,7 +270,7 @@
                     id: item.id,
                     text: item.text,
                     order: item.order.toString(),
-                    category: item.category
+                    category: item.category || 'Varie'
                 });
             };
 
@@ -410,6 +308,10 @@
             const subtextColor = isDark ? 'text-gray-400' : 'text-gray-600';
             const inputBg = isDark ? 'bg-gray-700' : 'bg-gray-100';
             const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
+
+            const sortedItems = [...items].sort((a, b) => a.order - b.order);
+            const categories = ['Abbigliamento', 'Calzature', 'Igiene', 'Elettronica', 'Documenti', 'Accessori', 'Cibo', 'Salute', 'Svago', 'Varie'];
+            const categoriesWithItems = categories.filter(cat => sortedItems.some(item => item.category === cat));
 
             const checkedItems = items.filter(i => i.checked).length;
             const totalItems = items.length;
@@ -461,7 +363,7 @@
                                 onChange: (e) => setNewCategory(e.target.value),
                                 className: `flex-1 ${inputBg} ${textColor} rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-sm`
                             },
-                                Object.keys(CATEGORY_COLORS).map(cat => h('option', { key: cat, value: cat }, cat))
+                                categories.map(cat => h('option', { key: cat, value: cat }, cat))
                             ),
                             h('button', {
                                 onClick: addItem,
@@ -478,12 +380,15 @@
                             h('div', { className: 'flex justify-center mb-3' }, h(PlaneIcon)),
                             h('p', { className: 'text-lg mb-2' }, 'Lista vuota'),
                             h('p', { className: 'text-sm' }, 'Inizia ad aggiungere gli elementi da portare in viaggio!')
-                        ) : categories.map(category => {
+                        ) : categoriesWithItems.map(category => {
                             const categoryItems = sortedItems.filter(item => item.category === category);
                             const categoryChecked = categoryItems.filter(item => item.checked).length;
-                            const colors = CATEGORY_COLORS[category] || CATEGORY_COLORS["Varie"];
+                            const colors = CATEGORY_COLORS[category];
                             
-                            return h('div', { key: category, className: `${cardBg} rounded-2xl shadow-lg p-4 border-l-4 ${colors.light} ${colors.dark}` },
+                            return h('div', { 
+                                key: category, 
+                                className: `${cardBg} rounded-2xl shadow-lg p-4 border-l-4 ${colors.border}`
+                            },
                                 h('div', { className: 'flex items-center justify-between mb-3' },
                                     h('div', { className: 'flex items-center gap-2' },
                                         h('span', { className: `${colors.badge} text-white text-xs font-bold px-3 py-1 rounded-full` }, category),
@@ -494,7 +399,7 @@
                                     categoryItems.map(item =>
                                         h('div', {
                                             key: item.id,
-                                            className: `flex items-center gap-3 p-2 rounded-lg hover:bg-opacity-50 ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-all group`
+                                            className: `flex items-center gap-3 p-2 rounded-lg ${colors.bg} transition-all group`
                                         },
                                             h('button', {
                                                 onClick: () => toggleCheck(item.id),
@@ -511,11 +416,11 @@
                                             h('div', { className: 'flex gap-1 opacity-0 group-hover:opacity-100 transition-all' },
                                                 h('button', {
                                                     onClick: () => startEdit(item),
-                                                    className: `${colors.text} hover:bg-opacity-10 rounded-lg p-2 transition-all`
+                                                    className: 'text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900 dark:hover:bg-opacity-20 rounded-lg p-2 transition-all'
                                                 }, h(EditIcon)),
                                                 h('button', {
                                                     onClick: () => deleteItem(item.id),
-                                                    className: 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900 dark:hover:bg-opacity-20 rounded-lg p-2 transition-all'
+                                                    className: 'text-red-500 hover:bg-red-100 dark:hover:bg-red-900 dark:hover:bg-opacity-20 rounded-lg p-2 transition-all'
                                                 }, h(TrashIcon))
                                             )
                                         )
@@ -574,7 +479,7 @@
                                     onChange: (e) => setEditingItem({ ...editingItem, category: e.target.value }),
                                     className: `w-full ${inputBg} ${textColor} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500`
                                 },
-                                    Object.keys(CATEGORY_COLORS).map(cat => h('option', { key: cat, value: cat }, cat))
+                                    categories.map(cat => h('option', { key: cat, value: cat }, cat))
                                 )
                             ),
                             
