@@ -137,7 +137,6 @@
             const [newCategory, setNewCategory] = useState('Varie');
             const [theme, setTheme] = useState('light');
             const [editingItem, setEditingItem] = useState(null);
-            const [debugInfo, setDebugInfo] = useState('');
 
             useEffect(() => {
                 const tg = window.Telegram?.WebApp;
@@ -325,23 +324,14 @@
 
             const sortedItems = [...items].sort((a, b) => a.order - b.order);
             
-            console.log('=== RENDERING ===');
-            console.log('Items totali:', items.length);
-            console.log('SortedItems:', sortedItems.length);
-            
             // Assicuriamoci che OGNI item abbia una categoria valida
             const itemsWithValidCategory = sortedItems.map(item => ({
                 ...item,
                 category: item.category && CATEGORY_COLORS[item.category] ? item.category : 'Varie'
             }));
             
-            console.log('ItemsWithValidCategory:', itemsWithValidCategory.length);
-            console.log('Prime 3 categorie:', itemsWithValidCategory.slice(0, 3).map(i => i.category));
-            
             const categories = ['Abbigliamento', 'Calzature', 'Igiene', 'Elettronica', 'Documenti', 'Accessori', 'Cibo', 'Salute', 'Svago', 'Varie'];
             const categoriesWithItems = categories.filter(cat => itemsWithValidCategory.some(item => item.category === cat));
-            
-            console.log('Categorie con items:', categoriesWithItems);
 
             const checkedItems = items.filter(i => i.checked).length;
             const totalItems = items.length;
