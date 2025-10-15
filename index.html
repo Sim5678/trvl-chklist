@@ -159,8 +159,15 @@
                     
                     tg.MainButton.setText('🔄 Reset Selezioni');
                     tg.MainButton.color = '#FF9500';
-                    tg.MainButton.onClick(() => handleResetChecks());
-                    tg.MainButton.show();
+                    tg.MainButton.onClick(handleResetChecks);
+                    
+                    // Mostra il pulsante solo se ci sono elementi spuntati
+                    const hasChecked = items.some(i => i.checked);
+                    if (hasChecked) {
+                        tg.MainButton.show();
+                    } else {
+                        tg.MainButton.hide();
+                    }
                 }
                 
                 const saved = localStorage.getItem('travel_checklist');
@@ -201,7 +208,13 @@
                 if (tg && items.length > 0) {
                     const checked = items.filter(i => i.checked).length;
                     const total = items.length;
-                    tg.MainButton.setText(`✅ ${checked}/${total} | 🔄 Reset`);
+                    
+                    if (checked > 0) {
+                        tg.MainButton.setText(`✅ ${checked}/${total} | 🔄 Reset`);
+                        tg.MainButton.show();
+                    } else {
+                        tg.MainButton.hide();
+                    }
                 }
             }, [items]);
 
@@ -428,14 +441,6 @@
                                 )
                             );
                         })
-                    ),
-
-                    items.some(i => i.checked) && h('button', {
-                        onClick: handleResetChecks,
-                        className: 'w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-4 font-medium flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg'
-                    },
-                        h(ResetIcon),
-                        'Reset Selezioni per Nuovo Viaggio'
                     )
                 ),
 
