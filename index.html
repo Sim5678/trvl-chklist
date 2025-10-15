@@ -172,26 +172,41 @@
                 }
                 
                 const saved = localStorage.getItem('travel_checklist');
+                
+                // RESET FORZATO - Cancella localStorage corrotto
                 if (saved) {
                     try {
                         const parsedItems = JSON.parse(saved);
                         
-                        // Se il localStorage contiene un array vuoto o non valido, reinizializza
+                        // Controlla se i dati sono validi
                         if (!parsedItems || !Array.isArray(parsedItems) || parsedItems.length === 0) {
-                            console.log('localStorage vuoto o non valido, reinizializzo');
+                            console.log('localStorage corrotto, cancello tutto');
+                            localStorage.removeItem('travel_checklist');
                             initializeData();
-                        } else {
-                            const updatedItems = parsedItems.map(item => ({
-                                ...item,
-                                category: item.category || ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie"
-                            }));
-                            setItems(updatedItems);
+                            return;
                         }
+                        
+                        // Controlla se gli items hanno tutte le proprietà necessarie
+                        const firstItem = parsedItems[0];
+                        if (!firstItem || !firstItem.text || !firstItem.order) {
+                            console.log('Struttura items non valida, reinizializzo');
+                            localStorage.removeItem('travel_checklist');
+                            initializeData();
+                            return;
+                        }
+                        
+                        const updatedItems = parsedItems.map(item => ({
+                            ...item,
+                            category: item.category || ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie"
+                        }));
+                        setItems(updatedItems);
                     } catch (e) {
                         console.error('Errore caricamento:', e);
+                        localStorage.removeItem('travel_checklist');
                         initializeData();
                     }
                 } else {
+                    // Prima volta - carica dati iniziali
                     initializeData();
                 }
             }, []);
@@ -347,8 +362,18 @@
 
             return h('div', { className: `min-h-screen ${bgColor} ${textColor} p-4 pb-20` },
                 h('div', { className: 'max-w-2xl mx-auto' },
-                    h('div', { className: 'mb-4 p-3 bg-yellow-200 dark:bg-yellow-800 rounded-lg text-sm text-black dark:text-white font-mono' }, 
-                        `DEBUG: items=${items.length} | sorted=${sortedItems.length} | valid=${itemsWithValidCategory.length} | cats=${categoriesWithItems.length}`
+                    h('div', { className: 'mb-4 p-3 bg-yellow-200 dark:bg-yellow-800 rounded-lg' }, 
+                        h('div', { className: 'text-sm text-black dark:text-white font-mono mb-2' }, 
+                            `DEBUG: items=${items.length} | sorted=${sortedItems.length} | valid=${itemsWithValidCategory.length} | cats=${categoriesWithItems.length}`
+                        ),
+                        items.length === 0 && h('button', {
+                            onClick: () => {
+                                localStorage.removeItem('travel_checklist');
+                                initializeData();
+                                alert('🔄 Dati reinizializzati!');
+                            },
+                            className: 'w-full bg-red-500 text-white px-4 py-2 rounded-lg font-bold'
+                        }, '🚨 RESET COMPLETO - Ricarica dati iniziali')
                     ),
                     
                     h('div', { className: 'mb-6 text-center' },
