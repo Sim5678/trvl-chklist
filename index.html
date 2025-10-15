@@ -137,6 +137,7 @@
             const [newCategory, setNewCategory] = useState('Varie');
             const [theme, setTheme] = useState('light');
             const [editingItem, setEditingItem] = useState(null);
+            const [debugInfo, setDebugInfo] = useState('');
 
             useEffect(() => {
                 const tg = window.Telegram?.WebApp;
@@ -339,6 +340,8 @@
 
             return h('div', { className: `min-h-screen ${bgColor} ${textColor} p-4 pb-20` },
                 h('div', { className: 'max-w-2xl mx-auto' },
+                    debugInfo && h('div', { className: 'mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg text-sm font-mono whitespace-pre-wrap' }, debugInfo),
+                    
                     h('div', { className: 'mb-6 text-center' },
                         h('div', { className: 'text-5xl mb-3' }, '✈️'),
                         h('h1', { className: 'text-3xl font-bold mb-2' }, 'Travel Checklist'),
