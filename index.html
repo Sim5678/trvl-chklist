@@ -492,6 +492,14 @@
                                 )
                             );
                         })
+                    ),
+                    
+                    items.some(i => i.checked) && h('button', {
+                        onClick: handleResetChecks,
+                        className: 'w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-4 font-medium flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg'
+                    },
+                        h(ResetIcon),
+                        'Reset Selezioni per Nuovo Viaggio'
                     )
                 ),
 
