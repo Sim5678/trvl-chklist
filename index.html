@@ -323,8 +323,15 @@
             const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
 
             const sortedItems = [...items].sort((a, b) => a.order - b.order);
+            
+            // Assicuriamoci che OGNI item abbia una categoria valida
+            const itemsWithValidCategory = sortedItems.map(item => ({
+                ...item,
+                category: item.category && CATEGORY_COLORS[item.category] ? item.category : 'Varie'
+            }));
+            
             const categories = ['Abbigliamento', 'Calzature', 'Igiene', 'Elettronica', 'Documenti', 'Accessori', 'Cibo', 'Salute', 'Svago', 'Varie'];
-            const categoriesWithItems = categories.filter(cat => sortedItems.some(item => item.category === cat));
+            const categoriesWithItems = categories.filter(cat => itemsWithValidCategory.some(item => item.category === cat));
 
             const checkedItems = items.filter(i => i.checked).length;
             const totalItems = items.length;
@@ -394,7 +401,7 @@
                             h('p', { className: 'text-lg mb-2' }, 'Lista vuota'),
                             h('p', { className: 'text-sm' }, 'Inizia ad aggiungere gli elementi da portare in viaggio!')
                         ) : categoriesWithItems.map(category => {
-                            const categoryItems = sortedItems.filter(item => item.category === category);
+                            const categoryItems = itemsWithValidCategory.filter(item => item.category === category);
                             const categoryChecked = categoryItems.filter(item => item.checked).length;
                             const colors = CATEGORY_COLORS[category];
                             
