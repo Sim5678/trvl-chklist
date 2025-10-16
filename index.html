@@ -376,7 +376,7 @@
                                     categoryItems.map(item =>
                                         h('div', {
                                             key: item.id,
-                                            className: `flex items-center gap-3 p-2 rounded-lg ${colors.bg} transition-all group`
+                                            className: `flex items-center gap-3 p-2 rounded-lg ${colors.bg} transition-all`
                                         },
                                             h('button', {
                                                 onClick: () => toggleCheck(item.id),
@@ -387,10 +387,13 @@
                                             
                                             h('div', { className: 'flex items-center gap-2 flex-1 min-w-0' },
                                                 h('span', { className: `${subtextColor} text-xs font-mono w-10 text-right flex-shrink-0` }, item.order),
-                                                h('p', { className: `${item.checked ? 'line-through opacity-50' : ''} break-words flex-1 text-sm` }, item.text)
+                                                h('p', { 
+                                                    className: `${item.checked ? 'line-through opacity-50' : ''} break-words flex-1 text-sm cursor-pointer`,
+                                                    onClick: () => toggleCheck(item.id)
+                                                }, item.text)
                                             ),
                                             
-                                            h('div', { className: 'flex gap-1 opacity-0 group-hover:opacity-100 transition-all' },
+                                            h('div', { className: 'flex gap-1' },
                                                 h('button', {
                                                     onClick: () => startEdit(item),
                                                     className: 'text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900 dark:hover:bg-opacity-20 rounded-lg p-2 transition-all'
