@@ -137,15 +137,31 @@
             const [newCategory, setNewCategory] = useState('Varie');
             const [theme, setTheme] = useState('light');
             const [editingItem, setEditingItem] = useState(null);
-            const [debugInfo, setDebugInfo] = useState('');
 
-            // Salva su localStorage quando cambiano gli items
-            useEffect(() => {
-                if (items.length > 0) {
-                    localStorage.setItem('travel_checklist', JSON.stringify(items));
+            const initializeData = () => {
+                const initialItems = INITIAL_DATA.map((item, idx) => ({
+                    id: Date.now() + idx,
+                    text: item.text,
+                    order: item.order,
+                    category: ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie",
+                    checked: false
+                }));
+                setItems(initialItems);
+            };
+
+            // FUNZIONE RESET CORRETTA - usa forma funzionale
+            const handleResetChecks = useCallback(() => {
+                setItems(currentItems => currentItems.map(item => ({ ...item, checked: false })));
+            }, []);
+
+            // FUNZIONE CON CONFERMA
+            const confirmResetChecks = useCallback(() => {
+                if (window.confirm('Reset di tutte le selezioni per un nuovo viaggio?')) {
+                    handleResetChecks();
+                    alert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
                 }
-            }, [items]);
-            
+            }, [handleResetChecks]);
+
             useEffect(() => {
                 const tg = window.Telegram?.WebApp;
                 
@@ -164,87 +180,32 @@
                     }
                     
                     setTheme(tg.colorScheme || 'light');
-                    
-                    tg.MainButton.setText('🔄 Reset Selezioni');
-                    tg.MainButton.color = '#FF9500';
-                    tg.MainButton.onClick(handleResetChecks);
-                    
-                    // Mostra il pulsante solo se ci sono elementi spuntati
-                    const hasChecked = items.some(i => i.checked);
-                    if (hasChecked) {
-                        tg.MainButton.show();
-                    } else {
-                        tg.MainButton.hide();
-                    }
                 }
                 
                 const saved = localStorage.getItem('travel_checklist');
-                
-                // RESET FORZATO - Cancella localStorage corrotto
                 if (saved) {
                     try {
                         const parsedItems = JSON.parse(saved);
-                        
-                        // Controlla se i dati sono validi
                         if (!parsedItems || !Array.isArray(parsedItems) || parsedItems.length === 0) {
-                            console.log('localStorage corrotto, cancello tutto');
-                            localStorage.removeItem('travel_checklist');
                             initializeData();
                             return;
                         }
-                        
-                        // Controlla se gli items hanno tutte le proprietà necessarie
-                        const firstItem = parsedItems[0];
-                        if (!firstItem || !firstItem.text || !firstItem.order) {
-                            console.log('Struttura items non valida, reinizializzo');
-                            localStorage.removeItem('travel_checklist');
-                            initializeData();
-                            return;
-                        }
-                        
                         const updatedItems = parsedItems.map(item => ({
                             ...item,
                             category: item.category || ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie"
                         }));
                         setItems(updatedItems);
                     } catch (e) {
-                        console.error('Errore caricamento:', e);
-                        localStorage.removeItem('travel_checklist');
                         initializeData();
                     }
                 } else {
-                    // Prima volta - carica dati iniziali
                     initializeData();
                 }
             }, []);
 
-            const initializeData = () => {
-                const initialItems = INITIAL_DATA.map((item, idx) => ({
-                    id: Date.now() + idx,
-                    text: item.text,
-                    order: item.order,
-                    category: ITEM_CATEGORIES[item.text.toLowerCase()] || "Varie",
-                    checked: false
-                }));
-                setItems(initialItems);
-            };
-
             useEffect(() => {
                 if (items.length > 0) {
                     localStorage.setItem('travel_checklist', JSON.stringify(items));
-                }
-                
-                const tg = window.Telegram?.WebApp;
-                if (tg && items.length > 0) {
-                    const checked = items.filter(i => i.checked).length;
-                    const total = items.length;
-                    
-                    if (checked > 0) {
-                        tg.MainButton.setText(`✅ ${checked}/${total} | 🔄 Reset`);
-                        tg.MainButton.show();
-                    } else {
-                        tg.MainButton.hide();
-                    }
                 }
             }, [items]);
 
@@ -266,45 +227,18 @@
                     setItems([...items, item]);
                     setNewItem('');
                     setNewOrder('');
-                    
-                    const tg = window.Telegram?.WebApp;
-                    if (tg?.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
                 }
             };
 
             const toggleCheck = (id) => {
-                setItems(items.map(item => 
+                setItems(currentItems => currentItems.map(item => 
                     item.id === id ? { ...item, checked: !item.checked } : item
                 ));
-                
-                const tg = window.Telegram?.WebApp;
-                if (tg?.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('light');
-                }
             };
 
             const deleteItem = (id) => {
                 if (window.confirm('Eliminare questo elemento?')) {
-                    setItems(items.filter(item => item.id !== id));
-                    
-                    const tg = window.Telegram?.WebApp;
-                    if (tg?.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('warning');
-                    }
-                }
-            };
-
-            const handleResetChecks = () => {
-                if (window.confirm('Reset di tutte le selezioni per un nuovo viaggio?')) {
-                    setItems(items.map(item => ({ ...item, checked: false })));
-                    
-                    const tg = window.Telegram?.WebApp;
-                    if (tg?.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
-                    alert('✈️ Selezioni azzerate! Pronto per il nuovo viaggio!');
+                    setItems(currentItems => currentItems.filter(item => item.id !== id));
                 }
             };
 
@@ -325,16 +259,11 @@
                         return;
                     }
                     
-                    setItems(items.map(item => 
+                    setItems(currentItems => currentItems.map(item => 
                         item.id === editingItem.id 
                             ? { ...item, text: editingItem.text.trim(), order: orderNum, category: editingItem.category } 
                             : item
                     ));
-                    
-                    const tg = window.Telegram?.WebApp;
-                    if (tg?.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('light');
-                    }
                     
                     setEditingItem(null);
                 }
@@ -353,8 +282,6 @@
             const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
 
             const sortedItems = [...items].sort((a, b) => a.order - b.order);
-            
-            // Assicuriamoci che OGNI item abbia una categoria valida
             const itemsWithValidCategory = sortedItems.map(item => ({
                 ...item,
                 category: item.category && CATEGORY_COLORS[item.category] ? item.category : 'Varie'
@@ -369,20 +296,6 @@
 
             return h('div', { className: `min-h-screen ${bgColor} ${textColor} p-4 pb-20` },
                 h('div', { className: 'max-w-2xl mx-auto' },
-                    h('div', { className: 'mb-4 p-3 bg-yellow-200 dark:bg-yellow-800 rounded-lg' }, 
-                        h('div', { className: 'text-sm text-black dark:text-white font-mono mb-2' }, 
-                            `DEBUG: items=${items.length} | sorted=${sortedItems.length} | valid=${itemsWithValidCategory.length} | cats=${categoriesWithItems.length}`
-                        ),
-                        items.length === 0 && h('button', {
-                            onClick: () => {
-                                localStorage.removeItem('travel_checklist');
-                                initializeData();
-                                alert('🔄 Dati reinizializzati!');
-                            },
-                            className: 'w-full bg-red-500 text-white px-4 py-2 rounded-lg font-bold'
-                        }, '🚨 RESET COMPLETO - Ricarica dati iniziali')
-                    ),
-                    
                     h('div', { className: 'mb-6 text-center' },
                         h('div', { className: 'text-5xl mb-3' }, '✈️'),
                         h('h1', { className: 'text-3xl font-bold mb-2' }, 'Travel Checklist'),
